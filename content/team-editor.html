@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <script src="js/js.cookie.min.js"></script>
+    <script src="js/jquery-3.4.1.min.js"></script>
+    <script src="js/enums.js"></script>
+    <link href="css/team-editor.css" rel="stylesheet" type="text/css" />
+    <script>
+      const USER_NAME = Cookies.get('userName');
+      const USER_CREDS = Cookies.get('userCreds');
+      const TEAM_URL = 'http://mazemasterjs.com/api/team';
+      const ALL_TEAMS = [];
+      const ALL_USERS = [];
+
+      /**
+       * Load all existing teams
+       */
+      function loadTeams() {
+        doAjax(TEAM_URL + '/get')
+          .then(data => {
+            const opts = [];
+            data.forEach(team => {
+              ALL_TEAMS.push(team);
+              opts.push(`<option value='${team.id}'>${team.name}</option>`);
+            });
+            $('#selTeams').html(opts.join());
+          })
+          .then(() => {
+            $('#selTeams').change();
+          });
+      }
+
+      /**
+       * Load all existing users
+       */
+      function loadUsers() {
+        doAjax(TEAM_URL + '/get/user').then(data => {
+          const opts = [];
+          data.forEach(user => {
+            ALL_USERS.push(user);
+            opts.push(`<option value='${user.id}'>${user.userName}</option>`);
+          });
+          $('#selUsers').html(opts.join());
+        });
+      }
+
+      /**
+       * Fetches and returns content from the provided url using the
+       * provided user auth token (btoa)
+       *
+       * @param {string} url The content url to request content from
+       * @param {string} method Optional (default 'GET'), HTTP method to use
+       * @param {string} data Optional, POJO Data to upload to the given url
+       */
+      async function doAjax(url, method = 'GET', data = {}) {
+        return $.ajax({
+          url,
+          data,
+          dataType: 'json',
+          method: method,
+          contentType: 'application/json',
+          headers: { Authorization: 'Basic ' + USER_CREDS },
+        })
+          .then(data => {
+            switch (method) {
+              case 'PUT':
+              case 'DELETE': {
+                return Promise.resolve(true);
+              }
+              default: {
+                return Promise.resolve(data);
+              }
+            }
+          })
+          .catch(ajaxError => {
+            return Promise.reject(ajaxError);
+          });
+      }
+    </script>
+    <title>MazeMasterJS - Code Camp 2019</title>
+  </head>
+  <body>
+    <div id="pageContainer">
+      <div id="controls">
+        <h1>Team Editor</h1>
+        <select id="selTeams"></select>
+        <button id="btnNewTeam">New Team</button>
+        <button id="btnNewBot">Add Bot</button>
+        <button id="btnDelTeam">Delete Team</button>
+      </div>
+      <div id="editTeam">
+        <div id="teamId"></div>
+        <div>Team Name:</div>
+        <div><input type="text" id="teamName" /></div>
+        <div>Team Logo:</div>
+        <div><input type="text" id="teamLogo" /></div>
+      </div>
+      <!-- <div id="users">
+        <label for="selUsers">User: </label>
+        <select id="selUsers"></select>
+        <button id="btnDelTeam">Delete User</button>
+        <button id="btnNewUser">Create User</button>
+      </div>
+      <br />
+      <div id="user"></div> -->
+    </div>
+  </body>
+
+  <script>
+    $().ready(async () => {
+      loadTeams();
+
+      $('#selTeams').change(() => {
+        const selTeam = ALL_TEAMS.find(team => {
+          return team.id === $('#selTeams').val();
+        });
+        console.log('Team Selected -> ', selTeam);
+        $('#teamId').html(selTeam.id);
+        $('#teamName').val(selTeam.name);
+        $('#teamLogo').val(selTeam.logo);
+
+        array.forEach(element => {});
+        for (let x = 0; x < selTeam.bots; x++) {}
+      });
+
+      $('#selUsers').change(() => {
+        const selUser = ALL_USERS.find(user => {
+          return user.id === $('#selUsers').val();
+        });
+        console.log('User Selected -> ', selUser);
+      });
+    });
+  </script>
+</html>

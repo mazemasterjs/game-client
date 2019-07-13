@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>MazeMasterJS - Bot Editor</title>
+
+    <!-- Fonts  / Icons-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Nanum+Gothic+Coding&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Quicksand&display=swap" rel="stylesheet" />
+
+    <!-- third-party styles -->
+    <link rel="stylesheet" data-name="vs/editor/editor.main" href="js/monaco-editor-min/min/vs/editor/editor.main.css" />
+    <link rel="stylesheet" href="js/jquery-ui-1.12.1/jquery-ui.css" />
+
+    <!-- third-party scripts -->
+    <script src="js/js.cookie.min.js"></script>
+    <script src="js/jquery-3.4.1.min.js"></script>
+    <script src="js/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+
+    <!-- MazeMaster styles -->
+    <link href="css/bot-editor.css" rel="stylesheet" type="text/css" />
+
+    <!-- MazeMaster scripts -->
+    <script src="js/enums.js"></script>
+    <script src="js/gameFuncs.js"></script>
+    <script src="js/declarations.js"></script>
+    <script src="js/skully.js"></script>
+    <script src="js/cheesy.js"></script>
+  </head>
+
+  <body>
+    <div id="pageContainer">
+      <div id="pageHeader">
+        <div id="userControls">
+          <div class="userHeader">
+            <i class="material-icons" title="Coder">face</i>
+            <span id="userName" class="userHeader">(unknown coder)</span>
+            <a id="logout" class="userHeader" href="#">(logout)</a>
+          </div>
+          <div class="userHeader">
+            <i class="material-icons" title="Team">people</i>
+            <span id="userTeam" class="userHeader">(unknown team)</span>
+          </div>
+          <div class="userHeader">
+            <i class="material-icons" title="Bot">android</i>
+            <span id="userBot" class="userHeader">(unknown bot)</span>
+            <select id="selBotVersion" class="autoScroll"></select>
+            <button id="btnSaveBotCode" tabindex="-1" class="btnDisabled" disabled>
+              New Version
+            </button>
+          </div>
+        </div>
+
+        <div class="logo">
+          <img src="images/mazemaster-logo.png" />
+        </div>
+      </div>
+
+      <div id="work-grid">
+        <div id="editor" class="grid-item"></div>
+        <div id="output" class="grid-item">
+          <div id="textLog" class="autoScroll"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="botControls">
+      <div class="mazeSelect">
+        <select name="selMaze" id="selMaze"></select>
+      </div>
+
+      <button id="btnStartBot" class="btnBot btnDisabled" tabindex="-1" disabled title="Run Bot (shortcut: F5 in editor)">Run Bot</button>
+      <button id="btnStepBot" class="btnBot btnDisabled" tabindex="-1" disabled title="Run Bot (shortcut: [SHIFT + F5] in editor)">Step Bot</button>
+      <button id="btnDebugBot" class="btnBot btnDisabled" tabindex="-1" disabled title="Debug Bot (shortcut: [CTRL + F5] in editor)">
+        Debug Bot
+        <span
+          class="ui-icon ui-icon-help"
+          title="Debugging Help"
+          onmouseover="$('#debugDialog').dialog('open');"
+          onmouseout="$('#debugDialog').dialog('close');"
+        ></span>
+      </button>
+      <button id="btnEmergencyStop" class="btnEmergencyStop" tabindex="-1" title="Runaway bot? Click here!">
+        STOP
+      </button>
+      <button id="btnQuit" class="btnEmergencyStop" tabindex="-1" title="Quit the game / maze that's currently in progress.">
+        QUIT
+      </button>
+    </div>
+
+    <section id="hidden-dialogs">
+      <div id="adminSelects">
+        <div>ADMIN CONTROLS</div>
+        <select name="selTeam" id="selTeam" class="adminControl"></select>
+        <select name="selBot" id="selBot" class="adminControl"></select>
+      </div>
+
+      <div id="miniMap" class="ui-widget-content dimmable">
+        <h3 class="ui-widget-header">MINI MAP</h3>
+        <input type="checkbox" id="chkAutoDim" name="autoDimMiniMap" title="Toggle Mini-Map Dimmer" />
+        <div id="miniMapContent" onresize="scaleMiniMap();"></div>
+      </div>
+
+      <div id="loadingDialog" title="-= LOADING =-" style="display: none">
+        <p id="loadMsgHeader">MazeMasterJS.botEditor is now...</p>
+        <p id="loadMsgBody">... authenticating user</p>
+      </div>
+
+      <div id="debugDialog" title="Trouble Debugging?" style="display: none">
+        <h3>TIP 1</h3>
+        <p>The developer console need to be open for debugging. Press F12 to toggle it.</p>
+        <h3>TIP 2</h3>
+        <p>Put the following line somewhere in your bot code to pause execution there: <b>debugger;</b></p>
+        <h3>TIP 3</h3>
+        <p>If there are no <b>debugger;</b> lines in your code, execution will pause on line 1.</p>
+      </div>
+
+      <div id="emergencyStopDialog" title="EMERGENCY STOP"></div>
+    </section>
+
+    <!-- Load the Monaco Editor -->
+    <script>
+      // open up the loading dialog right away
+      $('#loadingDialog').dialog({
+        dialogClass: 'no-close',
+        width: '20vw',
+        autoOpen: true,
+        modal: true,
+        closeOnEscape: false,
+      });
+
+      // load the monaco dependencies
+      var require = { paths: { vs: 'js/monaco-editor-min/min/vs' } };
+    </script>
+    <script src="js/monaco-editor-min/min/vs/loader.js"></script>
+    <script src="js/monaco-editor-min/min/vs/editor/editor.main.nls.js"></script>
+    <script src="js/monaco-editor-min/min/vs/editor/editor.main.js"></script>
+
+    <script>
+      pageLoadComplete = false;
+
+      /* CONFIGURE MONACO */
+      const startingScript = "logMessage('bot', 'I am<b>&nbsp;alive!</b>', 'Shall we play a<b>&nbsp;game?</b>');";
+
+      let model = monaco.editor.createModel(startingScript, 'javascript');
+
+      // prettier-ignore
+      monaco.languages.typescript.javascriptDefaults.addExtraLib(
+          MMJS_EDITOR_LIB,
+      );
+
+      // themes: vs | vs-dark | hc-black
+      $('#loadMsgBody').text('... starting the code editor');
+      const editor = monaco.editor.create(document.getElementById('editor'), {
+        model,
+        theme: 'vs-dark',
+        language: 'javascript',
+        lineNumbers: 'on',
+        roundedSelection: false,
+        scrollBeyondLastLine: false,
+        readOnly: false,
+        automaticLayout: true,
+        formatOnType: true,
+      });
+
+      // on page read, bind control events and start loading data
+      $().ready(async () => {
+        $(window).resize(() => {
+          pageResize();
+        });
+
+        if (Cookies.get('userName') === undefined || Cookies.get('userCreds') === undefined) {
+          let countdown = 3;
+          $('#loadMsgHeader').css('text-align', 'center');
+          $('#loadMsgBody').css('text-align', 'center');
+          $('#loadMsgHeader').html(`<b>Authentication Failure</b>`);
+          $('#loadMsgBody').html(`<span style='color:antiquewhite'>Redirecting you to the log in page in</span>&nbsp;<b>${countdown}</b>...`);
+          setInterval(() => {
+            if (countdown > 0) {
+              countdown--;
+            }
+            $('#loadMsgBody').html(`<span style='color:antiquewhite'>Redirecting you to the log in page in</span>&nbsp;<b>${countdown}</b>...`);
+          }, 1000);
+          setTimeout(() => {
+            window.location = 'index.html';
+          }, 3250);
+          return;
+        } else {
+          $('#userName').html(`<b>${Cookies.get('userName')}</b>`);
+        }
+
+        $('#loadMsgBody').text('... binding controls');
+
+        // make miniMap stowable
+        $('#miniMap > h3').dblclick(() => {
+          const mm = $('#miniMap');
+          if ($('#miniMapContent').css('display') === 'none') {
+            $('#miniMapContent').show();
+            $('#miniMap').css('height', 'var(--miniMapBaseSize)rem');
+            $('#miniMap').css('width', 'var(--miniMapBaseSize)rem');
+            $('#chkAutoDim').show();
+            mm.resizable('enable');
+            // scaleMiniMap();
+          } else {
+            $('#chkAutoDim').hide();
+            mm.css('min-height', '0');
+            mm.height($('#miniMap > h3').height());
+            $('#miniMap').css('height', 'var(--miniMapBaseSize)rem');
+            $('#miniMap').css('width', 'var(--miniMapBaseSize)rem');
+            $('#miniMapContent').hide();
+            mm.resizable('disable');
+          }
+        });
+
+        $('#logout').click(() => {
+          Cookies.remove('userName');
+          Cookies.remove('userCreds');
+          window.location = 'index.html';
+        });
+
+        $('#btnSaveBotCode').click(() => {
+          let botId = DATA_USER.botId;
+          if (DATA_USER.role > USER_ROLES.USER && DATA_USER.botId !== $('#selBot :selected').val()) {
+            botId = $('#selBot :selected').val();
+          }
+          versionBotCode(botId, editor.getValue());
+        });
+
+        $('#btnStartBot').click(() => {
+          EMERGENCY_STOP_BUTTON_PUSHED = false;
+          startBot(false, false);
+        });
+
+        $('#btnStepBot').click(() => {
+          EMERGENCY_STOP_BUTTON_PUSHED = false;
+          startBot(true, false);
+        });
+
+        $('#btnDebugBot').click(() => {
+          EMERGENCY_STOP_BUTTON_PUSHED = false;
+          startBot(true, true);
+        });
+
+        $('#btnEmergencyStop').click(() => {
+          EMERGENCY_STOP_BUTTON_PUSHED = true;
+          if (!botCallback) {
+            logMessage(
+              'wrn',
+              'EMERGENCY!? WHAT EMERGENCY?',
+              "Your bot wasn't actually even running, but we went ahead and sent the <b>'OMG_RUNAWAY_BOT_EMERGENCY_STOP_SAVE_ME'</b> command anyway.  You're welcome.",
+            );
+          }
+        });
+
+        $('#btnQuit').click(() => {
+          quitGame();
+        });
+
+        $('#selTeam').change(async () => {
+          console.log('selTeam.change()');
+          resetGlobals();
+          $('#selBot').attr('disabled', true);
+          await loadBots($('#selTeam :selected').val()).then(() => {
+            const userTeamName = DATA_TEAM.name;
+            const selTeamName = $('#selTeam :selected').text();
+
+            if (selTeamName != userTeamName) {
+              $('#userTeam').html(userTeamName + ' -> <span style="color:red;">' + selTeamName + '</span>');
+            } else {
+              $('#userTeam').html(userTeamName);
+            }
+
+            const userBotName = DATA_BOT.name;
+            const selBotName = $('#selBot :selected').text();
+            if (selBotName != userBotName) {
+              $('#userBot').html(userBotName + ' -> <span style="color:red;">' + selBotName + '</span>');
+            } else {
+              $('#userBot').html(userBotName);
+            }
+          });
+          $('#selBot').attr('disabled', false);
+        });
+
+        $('#selBot').change(() => {
+          if ($('#selBot').attr('disabled') == 'disabled') {
+            console.log('selBot.change() aborted - Team changing.');
+            return;
+          }
+          console.log('selBot.change()');
+          resetGlobals();
+          loadBotVersions($('#selBot :selected').val(), true);
+
+          const userBotName = DATA_BOT.name;
+          const selBotName = $('#selBot :selected').text();
+
+          if (selBotName != userBotName) {
+            $('#userBot').html(userBotName + ' -> <span style="color:red;">' + selBotName + '</span>');
+          } else {
+            $('#userBot').html(userBotName);
+          }
+        });
+
+        $('#selBotVersion').change(() => {
+          if (pageLoadComplete) {
+            console.log('selBotVersion.change()');
+
+            if (DATA_USER.role > USER_ROLES.USER) {
+              loadBotCode($('#selBot :selected').val(), $('#selBotVersion :selected').val());
+            } else {
+              loadBotCode(DATA_USER.botId, $('#selBotVersion :selected').val());
+            }
+          }
+        });
+
+        // set up the debug warning dialog
+        $('#debugDialog').dialog({
+          width: '40vw',
+          autoOpen: false,
+          modal: false,
+          closeText: '',
+        });
+
+        // set up the emergency stop dialog
+        $('#emergencyStopDialog').dialog({
+          autoOpen: false,
+          modal: true,
+          closeOnEscape: true,
+          closeText: '',
+          buttons: [
+            {
+              text: 'lol @ u',
+              icon: 'ui-icon-heart',
+              click: function() {
+                $(this).dialog('close');
+                $('#btnEmergencyStop').blur();
+              },
+            },
+          ],
+        });
+
+        // enable tool tips
+        $(document).tooltip();
+
+        let chkAutoDim = $('#chkAutoDim');
+        chkAutoDim.change(() => {
+          if (chkAutoDim.prop('checked')) {
+            $('#miniMap').removeClass('dimmable');
+          } else {
+            $('#miniMap').addClass('dimmable');
+          }
+        });
+
+        /** Set Editor Event Handlers **/
+        $('#loadMsgBody').text('... configuring the code editor');
+
+        // F5 within the code editor will run the bot
+        let runBotBinding = editor.addCommand(monaco.KeyCode.F5, function() {
+          startBot(false, false);
+        });
+
+        // CTRL+F5 within the code editor will debug the bot
+        let debugBotBinding = editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.F5, function() {
+          startBot(false, true);
+        });
+
+        // SHIFT+F5 within the code editor will step-run the bot
+        let stepBotBinding = editor.addCommand(monaco.KeyMod.Shift | monaco.KeyCode.F5, function() {
+          startBot(true, true);
+        });
+
+        // CTRL+S will auto-format and version the bot code
+        let saveBotBinding = editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S, function() {
+          if (!$('#btnSaveBotCode').hasClass('btnDisabled')) {
+            $('#btnSaveBotCode').click();
+          }
+        });
+
+        // manage save button states when content changes
+        editor.getModel().onDidChangeContent(event => {
+          if (monaco.editor.getModelMarkers().length > 0) {
+            setWarningCues(true);
+          } else {
+            setWarningCues(false);
+          }
+          if (pageLoadComplete) {
+            setSaveButtonStates(true);
+          }
+        });
+
+        /**
+         * Dynamically scale the mini map content's font size
+         */
+        $('#miniMap').on('resize', function(event, ui) {
+          scaleMiniMap();
+        });
+
+        loadData();
+        pageResize();
+
+        $('#botControls').css('visibility', 'visible');
+        $('#miniMap').css('visibility', 'visible');
+      });
+
+      function pageResize() {
+        // Initialize Mini-Map
+        $('#miniMap').resizable({ aspectRatio: 1 });
+        $('#miniMap').draggable();
+        $('#miniMap').position({
+          my: 'right bottom',
+          at: 'right-20 bottom-40',
+          of: '#editor',
+          collision: 'fit',
+        });
+
+        $('#botControls').position({
+          my: 'right bottom',
+          at: 'right top-7',
+          of: '#editor',
+          collision: 'fit none',
+        });
+
+        $('#adminSelects').position({
+          my: 'center bottom',
+          at: 'center top-10',
+          of: '#textLog',
+          collision: 'fitflip',
+        });
+
+        pageLoadComplete = true;
+        setSaveButtonStates(true);
+      }
+
+      // keep textLog always scrolled to the bottom
+      const textLog = document.querySelector('#textLog');
+      const textLogObsvr = new MutationObserver(scrollToBottom);
+      textLogObsvr.observe(textLog, { childList: true });
+    </script>
+  </body>
+</html>

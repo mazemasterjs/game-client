@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>MazeMasterJS - Code Camp 2019</title>
+
+    <!-- Fonts  / Icons-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Nanum+Gothic+Coding&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Quicksand&display=swap" rel="stylesheet" />
+
+    <!-- jQuery / jQueryUI-->
+    <link rel="stylesheet" href="js/jquery-ui-1.12.1/jquery-ui.css" />
+    <script src="js/jquery-3.4.1.min.js"></script>
+    <script src="js/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+    <script src="js/js.cookie.min.js"></script>
+
+    <!-- MazeMaster Stuff -->
+    <link href="css/bot-editor.css" rel="stylesheet" type="text/css" />
+    <link href="css/login.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+    <div class="loginGrid">
+      <div class="loginGridItem">
+        <img class="loginLogo" src="images/mazemaster-logo.png" />
+      </div>
+      <div id="loginForm" class="loginGridItem">
+        Login
+        <input type="text" id="tbUserName" placeholder="user name" />
+        <input type="password" id="tbPassword" placeholder="password" />
+        <input type="submit" id="btnSubmit" class="btnBot btnDisabled" value="SUBMIT" disabled />
+      </div>
+    </div>
+
+    <div id="menu" class="loginGridItem">
+      <h3>You are now logged in.</h3>
+      <p><a href="bot-editor.html">BOT EDITOR</a></p>
+    </div>
+
+    <div id="loginDialog" title="Login" style="display: none">
+      <div id="loginDialogMsg"></div>
+    </div>
+  </body>
+  <script>
+    'use strict';
+    $().ready(async () => {
+      const TEAM_URL = 'http://mazemasterjs.com/api/team/get/user';
+      //      const TEAM_URL = 'http://localhost:8083/api/team/get/user';
+
+      // load the userName field automatically
+      if (Cookies.get('userName') !== undefined) {
+        $('#tbUserName').val(Cookies.get('userName'));
+        $('#tbPassword').val('******');
+      }
+
+      // and auto-login if the creds cookie is found
+      if (Cookies.get('userName') !== undefined && Cookies.get('userCreds') !== undefined) {
+        authUser(Cookies.get('userName'), Cookies.get('userCreds'));
+      } else {
+        setButtonState(true);
+      }
+
+      // bind the enter key to the submit button (if it's enabled)
+      $('#tbPassword').keypress(evtData => {
+        if (evtData.keyCode === 13 && !$('.btnBot').attr('disabled')) {
+          $('#btnSubmit').click();
+        }
+      });
+
+      // set up the debug warning dialog
+      $('#loginDialog').dialog({
+        autoOpen: false,
+        modal: false,
+        closeText: 'Close',
+        buttons: [
+          {
+            text: 'OK',
+            icon: 'ui-icon-locked',
+            tabIndex: -1,
+            click: function() {
+              $(this).dialog('close');
+            },
+          },
+        ],
+      });
+
+      // map submit button click
+      $('#btnSubmit').click(() => {
+        const userName = $('#tbUserName')
+          .val()
+          .trim();
+        const userPass = $('#tbPassword')
+          .val()
+          .trim();
+
+        if (userName === '' || userPass === '') {
+          $('#loginDialogMsg').html('The <b>User Name</b> and <b>Password</b> are both required.');
+          $('#loginDialog').dialog('open');
+        } else {
+          authUser(userName, btoa(`${userName}:${userPass}`));
+        }
+      });
+
+      /**
+       * Authenticate a user using the mazemasterjs team service.
+       *
+       * @param {userName} userName userName to authenticate
+       * @param {enCreds} enCreds encoded user credentials
+       */
+      function authUser(userName, enCreds) {
+        const USER_GET_URL = TEAM_URL + `?userName=${userName}`;
+        setButtonState(false);
+
+        return $.ajax({
+          url: USER_GET_URL,
+          dataType: 'json',
+          method: 'GET',
+          headers: { Authorization: 'Basic ' + enCreds },
+          contentType: 'application/json',
+        })
+          .then(data => {
+            const user = data[0];
+            Cookies.set('userName', user.userName, { expires: 7 });
+            Cookies.set('userCreds', enCreds, { expires: 7 });
+            $('#loginForm').hide();
+            $('#menu').show();
+            setButtonState(true);
+          })
+          .catch(loginError => {
+            let errMsg = 'Invalid user name or password.';
+            if (loginError.status === 0) {
+              errMsg = 'Connection refused.';
+            }
+            $('#loginDialogMsg').html(`<b>Login Failed</b> - ${errMsg}`);
+            $('#loginDialog').dialog('open');
+            setButtonState(true);
+          });
+      }
+
+      function stashAuthCookie(creds) {
+        Cookies.set('mazejasterjs-auth', 'creds', { expires: 7 });
+      }
+
+      /**
+       * Toggle login submit button states while auth is running
+       *
+       * @param {boolean} enabled
+       */
+      function setButtonState(enabled) {
+        if (enabled) {
+          $('.btnBot').attr('disabled', false);
+          $('.btnBot').removeClass('btnDisabled');
+          $('.btnBot').addClass('btnEnabled');
+        } else {
+          $('.btnBot').attr('disabled', true);
+          $('.btnBot').addClass('btnDisabled');
+          $('.btnBot').removeClass('btnEnabled');
+        }
+      }
+    });
+  </script>
+</html>

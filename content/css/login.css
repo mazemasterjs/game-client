@@ -1,0 +1,58 @@
+.loginGrid {
+  display: grid;
+  justify-content: center;
+  align-content: center;
+  grid-template-columns: auto;
+  grid-template-rows: auto;
+  padding: 0;
+}
+
+.loginLogo {
+  object-fit: contain;
+  height: 100%;
+  width: 100%;
+  max-height: 140px;
+}
+
+.loginGridItem {
+  justify-content: center;
+  align-content: center;
+  padding: 1rem;
+  font-size: 2rem;
+  text-align: center;
+}
+
+input[type='text'],
+input[type='password'] {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  margin: 0.75rem auto 0.75rem auto;
+  font-size: 1rem;
+  border-radius: 0.4rem;
+  background: #96877333;
+  border-color: #a38762;
+  color: antiquewhite;
+  min-width: 12.5rem;
+  min-height: 1.2rem;
+}
+
+input[type='submit'] {
+  padding: 0.5rem 0.75rem;
+  margin: 0.75rem auto 0.75rem auto;
+  font-size: 1rem;
+  width: 14.2rem;
+  min-width: 12.5rem;
+  min-height: 1.2rem;
+}
+
+#loginDialogMsg {
+  font-size: 0.9rem;
+}
+
+#loginDialogMsg > b {
+  color: gold;
+}
+
+#menu {
+  display: none;
+}
