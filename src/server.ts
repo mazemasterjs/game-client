@@ -36,9 +36,9 @@ function launchExpress() {
   app.use('/', router);
 
   // and start the httpServer - starts the service
-  httpServer = app.listen(config.HTTP_PORT_GAME, () => {
+  httpServer = app.listen(config.HTTP_PORT, () => {
     // sever is now listening - live probe should be active, but ready probe must wait for routes to be mapped.
-    log.force(__filename, 'launchExpress()', `Express is listening -> http://${hostname}:${config.HTTP_PORT_GAME}`);
+    log.force(__filename, 'launchExpress()', `Express is listening -> http://${hostname}:${config.HTTP_PORT}`);
     log.force(__filename, 'launchExpress()', `[ GAME-CLIENT ] is now LIVE and READY!'`);
   });
 }
