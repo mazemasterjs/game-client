@@ -35,12 +35,6 @@ function launchExpress() {
   // set up the base /game router
   app.use('/', router);
 
-  // catch-all for unhandled requests
-  // app.get('/*', (req, res) => {
-  //   log.debug(__filename, req.url, 'Invalid Route Requested -> ' + req.url);
-  //   return res.status(404).send('Resource Not Found');
-  // });
-
   // and start the httpServer - starts the service
   httpServer = app.listen(config.HTTP_PORT_GAME, () => {
     // sever is now listening - live probe should be active, but ready probe must wait for routes to be mapped.
