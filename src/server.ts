@@ -32,6 +32,9 @@ function launchExpress() {
   // enable http compression middleware
   app.use(compression());
 
+  // set ejs for content rendering of non-static pages
+  app.set('view engine', 'ejs');
+
   // set up the base /game router
   app.use('/', router);
 

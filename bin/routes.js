@@ -31,6 +31,10 @@ exports.serveFile = (req, res) => {
         return res.status(404).send('Page Not Found');
     }
 };
+exports.editTeams = (req, res) => {
+    logRequest('editTeams', req, true);
+    return res.status(200).json({ status: 'ok', message: 'editTeams' });
+};
 /**
  * Liveness and Readiness probe for K8s/OpenShift.
  * A response indicates service alive/ready.

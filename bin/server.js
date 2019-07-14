@@ -28,6 +28,8 @@ function launchExpress() {
     log.debug(__filename, 'launchExpress()', 'Configuring express HTTPServer...');
     // enable http compression middleware
     app.use(compression_1.default());
+    // set ejs for content rendering of non-static pages
+    app.set('view engine', 'ejs');
     // set up the base /game router
     app.use('/', router_1.router);
     // and start the httpServer - starts the service

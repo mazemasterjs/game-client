@@ -28,6 +28,11 @@ export const serveFile = (req: Request, res: Response) => {
   }
 };
 
+export const editTeams = (req: Request, res: Response) => {
+  logRequest('editTeams', req, true);
+  return res.status(200).json({ status: 'ok', message: 'editTeams' });
+};
+
 /**
  * Liveness and Readiness probe for K8s/OpenShift.
  * A response indicates service alive/ready.

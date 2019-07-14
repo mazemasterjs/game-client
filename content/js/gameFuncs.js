@@ -1048,7 +1048,7 @@ function getEndGameImg(imgType) {
   }
 
   const imgNum = Math.floor(Math.random() * maxImgNum);
-  return `<div class='gameOverImgContainer'><img class='gameOverImg' src='images/${folder}/${imgNum}.gif' onload='scrollToBottom();' /></div>`;
+  return `<div class='gameOverImgContainer'><img class='gameOverImg' src='media/images/${folder}/${imgNum}.gif' onload='scrollToBottom();' /></div>`;
 }
 
 /**
