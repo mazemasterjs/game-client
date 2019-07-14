@@ -16,7 +16,7 @@ body {
 }
 
 select {
-  background: #202020 url(../js/jquery-ui-1.12.1/images/ui-bg_white-lines_5_202020_40x100.png) 50% 50% repeat;
+  background: #202020 url(http://mazemasterjs.com/media/js_static/jquery-ui-1.12.1/images/ui-bg_white-lines_5_202020_40x100.png) 50% 50% repeat;
   color: antiquewhite;
   border: solid 1px #deb887b4;
   border-radius: 0.25rem;
