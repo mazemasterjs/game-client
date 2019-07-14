@@ -16,7 +16,13 @@ const log = logger_1.Logger.getInstance();
  */
 exports.serveFile = (req, res) => {
     logRequest('serverFile', req);
-    const absFile = path_1.default.resolve('content/' + req.url);
+    let absFile = '';
+    if (req.url === '/') {
+        absFile = path_1.default.resolve('content/index.html');
+    }
+    else {
+        absFile = path_1.default.resolve('content/' + req.url);
+    }
     log.debug(__filename, 'serveFile()', 'File requested: ' + absFile);
     if (fs_1.default.existsSync(absFile)) {
         return res.status(200).sendFile(absFile);

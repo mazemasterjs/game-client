@@ -14,7 +14,12 @@ const log = Logger.getInstance();
  */
 export const serveFile = (req: Request, res: Response) => {
   logRequest('serverFile', req);
-  const absFile = path.resolve('content/' + req.url);
+  let absFile = '';
+  if (req.url === '/') {
+    absFile = path.resolve('content/index.html');
+  } else {
+    absFile = path.resolve('content/' + req.url);
+  }
   log.debug(__filename, 'serveFile()', 'File requested: ' + absFile);
   if (fs.existsSync(absFile)) {
     return res.status(200).sendFile(absFile);
