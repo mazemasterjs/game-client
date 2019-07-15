@@ -32,19 +32,16 @@ function launchExpress() {
   // enable http compression middleware
   app.use(compression());
 
+  // set ejs for content rendering of non-static pages
+  app.set('view engine', 'ejs');
+
   // set up the base /game router
   app.use('/', router);
 
-  // catch-all for unhandled requests
-  // app.get('/*', (req, res) => {
-  //   log.debug(__filename, req.url, 'Invalid Route Requested -> ' + req.url);
-  //   return res.status(404).send('Resource Not Found');
-  // });
-
   // and start the httpServer - starts the service
-  httpServer = app.listen(config.HTTP_PORT_GAME, () => {
+  httpServer = app.listen(config.HTTP_PORT, () => {
     // sever is now listening - live probe should be active, but ready probe must wait for routes to be mapped.
-    log.force(__filename, 'launchExpress()', `Express is listening -> http://${hostname}:${config.HTTP_PORT_GAME}`);
+    log.force(__filename, 'launchExpress()', `Express is listening -> http://${hostname}:${config.HTTP_PORT}`);
     log.force(__filename, 'launchExpress()', `[ GAME-CLIENT ] is now LIVE and READY!'`);
   });
 }

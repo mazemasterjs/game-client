@@ -8,39 +8,162 @@ body {
 
 #pageContainer {
   display: grid;
-  align-content: center;
-  justify-content: center;
+  min-width: 790px;
+  align-content: left;
+  justify-content: left;
+  margin: 0.5rem;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr auto;
 }
 
-#controls {
-  display: inline;
+#pageTitle {
+  display: grid;
   text-align: center;
-  margin: 0.5rem auto 1rem auto;
+  margin: 0 0 2rem 0;
 }
 
-#teamId {
-  justify-content: center;
-  align-content: center;
-  grid-column: 1 / span 2;
-  font-weight: bold;
-  margin-bottom: 1rem;
-  color: darkorange;
-}
-
-#editTeam {
+#teamDetails {
   display: grid;
   row-gap: 0.5rem;
   column-gap: 0.5rem;
-  text-align: center;
-  width: fit-content;
-  margin-top: 2rem;
-  grid-template-columns: auto auto;
+  margin-top: 1rem;
+  grid-template-columns: auto auto auto;
 }
 
-#editTeam input {
-  width: 25rem;
-  background-color: slategrey;
-  border-color: darkslategrey;
-  color: whitesmoke;
+#teamDetails input {
+  width: 95%;
+}
+
+#logoPreview {
+  position: absolute;
+  width: 10rem;
+  max-width: 150px;
+  max-height: 150px;
+}
+
+#botList {
+  display: grid;
+  row-gap: 0.5rem;
+  column-gap: 0.5rem;
+  margin-top: 1rem;
+  grid-template-columns: auto auto auto auto;
+}
+
+.botDetails {
+  display: grid;
+  row-gap: 0.5rem;
+  column-gap: 0.5rem;
+  margin-top: 0.25rem;
+  grid-template-columns: min-content auto;
+  white-space: nowrap;
   padding: 0.25rem;
+  background-color: rgba(250, 235, 215, 0.055);
+  border: solid 1px rgba(250, 235, 215, 0.25);
+  border-radius: 0.5rem;
+}
+
+.botDetails input {
+  width: 90%;
+}
+
+.botDetails > label {
+  width: fit-content;
+  text-align: right;
+}
+
+.bdLeft {
+  grid-column: 2;
+}
+
+.bdRight {
+  grid-column: 3;
+}
+
+#teamControls {
+  text-align: right;
+  width: fit-content;
+}
+
+.editText {
+  background-color: rgb(55, 55, 55);
+  border-radius: 0.25rem;
+  border: solid 1px lightslategray;
+  color: antiquewhite;
+  padding: 0.25rem;
+}
+
+.viewText {
+  border-radius: 0.25rem;
+  background-color: rgb(15, 26, 26);
+  border: solid 1px darkslategray;
+  color: rgb(131, 131, 131);
+  padding: 0.25rem;
+}
+
+.label {
+  text-align: right;
+  padding-top: 0.15rem;
+}
+
+select {
+  background: rgb(55, 55, 55) url(http://mazemasterjs.com/media/js_static/jquery-ui-1.12.1/images/ui-bg_white-lines_5_202020_40x100.png) 50% 50% repeat;
+  color: antiquewhite;
+  border: solid 1px lightslategray;
+  border-radius: 0.25rem;
+  padding: 0.25rem;
+  width: fit-content;
+}
+
+select:invalid {
+  color: gray;
+}
+
+option {
+  color: antiquewhite;
+}
+
+button {
+  display: inline !important;
+}
+
+.btnEnabled {
+  font-size: 0.9rem;
+  border: 1px solid #a38762;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  text-shadow: -1px -1px 1px 1px rgba(0, 0, 0, 0.5);
+  color: antiquewhite;
+  background-color: #96877333;
+  background-image: linear-gradient(to bottom, #a38762, #3b362e33);
+}
+
+.btnEnabled:hover {
+  border: 1px solid #a17b10;
+  text-shadow: 1px 1px -1px -1px rgba(0, 0, 0, 0.5);
+  background-image: linear-gradient(to bottom, #3b362e33, #a38762);
+}
+
+.btnDisabled {
+  font-size: 0.9rem;
+  border: 1px solid hsla(34, 26%, 51%, 0.5);
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  color: rgba(250, 235, 215, 0.5) !important;
+  background-color: hsla(34, 14%, 52%, 0.2);
+}
+
+.btnEmergencyStop {
+  font-size: 0.9rem;
+  font-weight: bold;
+  border: 1px dashed yellow;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  text-shadow: -1px -1px 1px 1px rgba(0, 0, 0, 0.5);
+  color: antiquewhite;
+  background-image: linear-gradient(to bottom, rgb(214, 0, 0), rgb(97, 18, 18));
+}
+
+.btnEmergencyStop:hover {
+  text-shadow: 1px 1px -1px -1px rgba(0, 0, 0, 0.5);
+  background-image: linear-gradient(to bottom, rgb(97, 18, 18), rgb(214, 0, 0));
 }

@@ -13,9 +13,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const routes = __importStar(require("./routes"));
 const express_1 = __importDefault(require("express"));
 exports.router = express_1.default.Router();
-// existing games
-exports.router.get('/*', routes.serveFile);
+// team editor
+exports.router.get('/admin/team-editor', routes.editTeams);
 // map the live/ready probes
 exports.router.get('/probes/live', routes.livenessProbe);
 exports.router.get('/probes/ready', routes.readinessProbe);
+// all other content
+exports.router.get('/*', routes.serveFile);
 //# sourceMappingURL=router.js.map

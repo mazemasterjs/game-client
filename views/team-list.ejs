@@ -1,0 +1,10 @@
+<% teams.forEach(function(team){ %>
+  <div id='team_<%=team.id%>' class='teamContainer'>
+      <div class='label'>Team Id:</div>
+      <div><input type="text" class='viewText' id="teamId_<%=team.id%>" value="<%=team.id%>" readonly></div>
+      <div class='label'>Team Name:</div>
+      <div><input type="text" class='editText' id="teamName_<%=team.id%>"  value="<%=team.name%>"></div>
+      <div class='label'>Team Logo:</div>
+      <div><input type="text" class='editText' id="teamLogo_<%=team.id%>"  value="<%=team.logo%>"></div>
+  </div>
+<% }); %>

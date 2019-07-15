@@ -13,7 +13,7 @@ const CALLBACK_TIMEOUT = 3000;
 const CALLBACK_DELAY = 0;
 const FAIL_IMG_COUNT = 31;
 const SUCC_IMG_COUNT = 31;
-const QUIT_IMG_COUNT = 12;
+const QUIT_IMG_COUNT = 11;
 const AJAX_TIMEOUT = 5000;
 const TEXTLOG_MAX_CHILDREN = 250;
 const DBG = true;
@@ -55,7 +55,14 @@ const getBotRamLength = () => {
  * @return {string}
  */
 const jsonToStr = obj => {
-  return JSON.stringify(obj).replace(/\,\"/g, ', "');
+  let spacier = JSON.stringify(obj);
+  spacier = spacier.replace(/{/g, '{ ');
+  spacier = spacier.replace(/}/g, ' }');
+  spacier = spacier.replace(/\[/g, '[ ');
+  spacier = spacier.replace(/\]/g, '] ');
+  spacier = spacier.replace(/\,\"/g, ' , "');
+  spacier = spacier.replace(/:/g, ' : ');
+  return spacier;
 };
 
 /**
@@ -489,14 +496,13 @@ function versionBotCode(botId, code) {
         data: {
           botId: botId,
           version: '0.0.1',
-          code,
+          code: startBotCode,
         },
       })
         .then(() => {
           logMessage('bot', `${$('selBot').text()}&nbsp;<b>v0.0.1</b>&nbsp;Initialized!`);
-          if ($('#selBotVersion').children().length === 0) {
-            $('#selBotVersion').append(`<option value="${botId}">0.0.1</option>`);
-          }
+          $('#selBotVersion').empty();
+          $('#selBotVersion').append(`<option value="${botId}">0.0.1</option>`);
         })
         .catch(error => {
           logMessage('err', 'ERROR INITIALIZING BOT', `${error.status} - ${error.statusText} initializing bot&nbsp;<b>${botId}</span>`);
@@ -821,7 +827,8 @@ async function runBot(botCode, stepBot, debugBot) {
 
   try {
     // convert the bot text to a js function
-    if (DBG) console.log(`runBot(${stepBot}, ${debugBot}) : Creating botFn, botCode ->`, '\n' + botCode);
+    if (DBG) console.log(`runBot(${stepBot}, ${debugBot}) : Creating botFn from botCode.`);
+    //    if (DBG) console.log(`runBot(${stepBot}, ${debugBot}) : Creating botFn, botCode ->`, '\n' + botCode);
     const botFn = new Function(botCode);
     clearInterval(botCallBackTimer);
     botCallBackTimer = setInterval(callbackTimeout, CALLBACK_TIMEOUT); // safety check for bots that fall out of the function (or get stuck) before sending an action
@@ -871,13 +878,15 @@ async function renderAction(result) {
   const action = result.action;
   const engram = action.engram;
 
+  const nData = reformatData(JSON.parse(JSON.stringify(result)));
+
   let logMsg = '<div class="actionBody">';
 
   logMsg += `Command: <b>${getObjValName(COMMANDS, action.command)}</b>&nbsp;&nbsp[&nbsp;${action.command}&nbsp;]<br>`;
   logMsg += `Direction: <b>${getObjValName(DIRS, action.direction)}</b>&nbsp;&nbsp[&nbsp;${action.direction}&nbsp;]<br>`;
   if (action.message !== '') logMsg += `Message: <b>${action.message}</b><br>`;
-  logMsg += `Player State(s): ${getSelectedValueNames(PLAYER_STATES, result.playerState)}<br>`;
-  logMsg += `Player Facing: <b>${getObjValName(DIRS, result.playerFacing)}</b>&nbsp;&nbsp[&nbsp;${result.playerFacing}&nbsp;]<br>`;
+  logMsg += `Player State(s): ${getSelectedValueNames(PLAYER_STATES, nData.player.state)}<br>`;
+  logMsg += `Player Facing: <b>${getObjValName(DIRS, nData.player.facing)}</b>&nbsp;&nbsp[&nbsp;${nData.player.facing}&nbsp;]<br>`;
 
   // add outcomes to the log
   if (action.outcomes.length > 1) {
@@ -893,28 +902,64 @@ async function renderAction(result) {
 
   // log the local "here" engram
   logMsg += `<div id="${actId}_HERE" class="engramContainer" onclick="toggleEngramContent('${actId}_HERE');">`;
-  logMsg += `  <h5><span id="${actId}_HERE_icon" class="ui-icon ui-icon-plus"></span>data.engram.<b>here</b></h5>`;
-  logMsg += `  <p class='engramData' style="display:none"><b>.exitNorth=</b>${jsonToStr(engram.here.exitNorth)}</p>`;
-  logMsg += `  <p class='engramData' style="display:none"><b>.exitSouth=</b>${jsonToStr(engram.here.exitSouth)}</p>`;
-  logMsg += `  <p class='engramData' style="display:none"><b>.exitEast=</b>${jsonToStr(engram.here.exitEast)}</p>`;
-  logMsg += `  <p class='engramData' style="display:none"><b>.exitWest=</b>${jsonToStr(engram.here.exitWest)}</p>`;
-  logMsg += `  <p class='engramData' style="display:none"><b>.messages=</b>${jsonToStr(engram.here.messages)}</p>`;
-  logMsg += `  <p class='engramData' style="display:none"><b>.intuition=</b>${jsonToStr(engram.here.intuition)}</p>`;
+  logMsg += `  <h5><span id="${actId}_HERE_icon" class="ui-icon ui-icon-plus"></span>data.<b>room</b></h5>`;
+  logMsg += `  <p class='engramData' style="display:none"><b>.exitNorth=</b>${jsonToStr(nData.room.exitNorth)}</p>`;
+  logMsg += `  <p class='engramData' style="display:none"><b>.exitSouth=</b>${jsonToStr(nData.room.exitSouth)}</p>`;
+  logMsg += `  <p class='engramData' style="display:none"><b>.exitEast=</b>${jsonToStr(nData.room.exitEast)}</p>`;
+  logMsg += `  <p class='engramData' style="display:none"><b>.exitWest=</b>${jsonToStr(nData.room.exitWest)}</p>`;
+  logMsg += `  <p class='engramData' style="display:none"><b>.messages=</b>${jsonToStr(nData.room.messages)}</p>`;
   logMsg += `</div>`;
 
-  // log directional engrams
-  for (const dir in DIRS) {
-    if (DIRS[dir] >= DIRS.NORTH && DIRS[dir] <= DIRS.WEST) {
-      logMsg += `<div id="${actId}_${dir}" class="engramContainer" onclick="toggleEngramContent('${actId}_${dir}');">`;
-      logMsg += `  <h5><span id="${actId}_${dir}_icon" class="ui-icon ui-icon-plus"></span>data.engram.<b>${dir.toLowerCase()}</b></h5>`;
-      logMsg += `  <p class='engramData' style="display:none"><b>.see=</b>${jsonToStr(engram[dir.toLowerCase()].see)}</p>`;
-      logMsg += `  <p class='engramData' style="display:none"><b>.hear=</b>${jsonToStr(engram[dir.toLowerCase()].hear)}</p>`;
-      logMsg += `  <p class='engramData' style="display:none"><b>.smell=</b>${jsonToStr(engram[dir.toLowerCase()].smell)}</p>`;
-      logMsg += `  <p class='engramData' style="display:none"><b>.feel=</b>${jsonToStr(engram[dir.toLowerCase()].feel)}</p>`;
-      logMsg += `  <p class='engramData' style="display:none"><b>.taste=</b>${jsonToStr(engram[dir.toLowerCase()].taste)}</p>`;
-      logMsg += `</div>`;
-    }
+  logMsg += `<div id="${actId}_SEE" class="engramContainer" onclick="toggleEngramContent('${actId}_SEE');">`;
+  logMsg += `  <h5><span id="${actId}_SEE_icon" class="ui-icon ui-icon-plus"></span>data.<b>see</b></h5>`;
+  if (undefined != nData.see) {
+    logMsg += `  <p class='engramData' style="display:none"><b>.north=</b>${jsonToStr(nData.see.north)}</p>`;
+    logMsg += `  <p class='engramData' style="display:none"><b>.east=</b>${jsonToStr(nData.see.east)}</p>`;
+    logMsg += `  <p class='engramData' style="display:none"><b>.south=</b>${jsonToStr(nData.see.south)}</p>`;
+    logMsg += `  <p class='engramData' style="display:none"><b>.west=</b>${jsonToStr(nData.see.west)}</p>`;
   }
+  logMsg += `</div>`;
+
+  logMsg += `<div id="${actId}_TOUCH" class="engramContainer" onclick="toggleEngramContent('${actId}_TOUCH');">`;
+  logMsg += `  <h5><span id="${actId}_TOUCH_icon" class="ui-icon ui-icon-plus"></span>data.<b>touch</b></h5>`;
+  if (undefined != nData.touch) {
+    logMsg += `  <p class='engramData' style="display:none"><b>.north=</b>${jsonToStr(nData.touch.north)}</p>`;
+    logMsg += `  <p class='engramData' style="display:none"><b>.east=</b>${jsonToStr(nData.touch.east)}</p>`;
+    logMsg += `  <p class='engramData' style="display:none"><b>.south=</b>${jsonToStr(nData.touch.south)}</p>`;
+    logMsg += `  <p class='engramData' style="display:none"><b>.west=</b>${jsonToStr(nData.touch.west)}</p>`;
+  }
+  logMsg += `</div>`;
+
+  logMsg += `<div id="${actId}_HEAR" class="engramContainer" onclick="toggleEngramContent('${actId}_HEAR');">`;
+  logMsg += `  <h5><span id="${actId}_HEAR_icon" class="ui-icon ui-icon-plus"></span>data.<b>hear</b></h5>`;
+  if (undefined != nData.hear) {
+    logMsg += `  <p class='engramData' style="display:none"><b>.north=</b>${jsonToStr(nData.hear.north)}</p>`;
+    logMsg += `  <p class='engramData' style="display:none"><b>.east=</b>${jsonToStr(nData.hear.east)}</p>`;
+    logMsg += `  <p class='engramData' style="display:none"><b>.south=</b>${jsonToStr(nData.hear.south)}</p>`;
+    logMsg += `  <p class='engramData' style="display:none"><b>.west=</b>${jsonToStr(nData.hear.west)}</p>`;
+  }
+  logMsg += `</div>`;
+
+  logMsg += `<div id="${actId}_SMELL" class="engramContainer" onclick="toggleEngramContent('${actId}_SMELL');">`;
+  logMsg += `  <h5><span id="${actId}_SMELL_icon" class="ui-icon ui-icon-plus"></span>data.<b>smell</b></h5>`;
+  if (undefined != nData.smell) {
+    logMsg += `  <p class='engramData' style="display:none"><b>.north=</b>${jsonToStr(nData.smell.north)}</p>`;
+    logMsg += `  <p class='engramData' style="display:none"><b>.east=</b>${jsonToStr(nData.smell.east)}</p>`;
+    logMsg += `  <p class='engramData' style="display:none"><b>.south=</b>${jsonToStr(nData.smell.south)}</p>`;
+    logMsg += `  <p class='engramData' style="display:none"><b>.west=</b>${jsonToStr(nData.smell.west)}</p>`;
+  }
+  logMsg += `</div>`;
+
+  logMsg += `<div id="${actId}_TASTE" class="engramContainer" onclick="toggleEngramContent('${actId}_TASTE');">`;
+  logMsg += `  <h5><span id="${actId}_TASTE_icon" class="ui-icon ui-icon-plus"></span>data.<b>taste</b></h5>`;
+  if (undefined != nData.taste) {
+    logMsg += `  <p class='engramData' style="display:none"><b>.north=</b>${jsonToStr(nData.taste.north)}</p>`;
+    logMsg += `  <p class='engramData' style="display:none"><b>.east=</b>${jsonToStr(nData.taste.east)}</p>`;
+    logMsg += `  <p class='engramData' style="display:none"><b>.south=</b>${jsonToStr(nData.taste.south)}</p>`;
+    logMsg += `  <p class='engramData' style="display:none"><b>.west=</b>${jsonToStr(nData.taste.west)}</p>`;
+  }
+  logMsg += `</div>`;
+
   logMsg += '</div>';
 
   // track total move count and score
@@ -1048,7 +1093,7 @@ function getEndGameImg(imgType) {
   }
 
   const imgNum = Math.floor(Math.random() * maxImgNum);
-  return `<div class='gameOverImgContainer'><img class='gameOverImg' src='images/${folder}/${imgNum}.gif' onload='scrollToBottom();' /></div>`;
+  return `<div class='gameOverImgContainer'><img class='gameOverImg' src='http://mazemasterjs.com/media/images/${folder}/${imgNum}.gif' onload='scrollToBottom();' /></div>`;
 }
 
 /**
@@ -1465,10 +1510,10 @@ function reformatData(data) {
   nData.smell.west = data.action.engram.west.smell;
 
   nData.touch = {};
-  nData.touch.north = data.action.engram.north.touch;
-  nData.touch.south = data.action.engram.south.touch;
-  nData.touch.east = data.action.engram.east.touch;
-  nData.touch.west = data.action.engram.west.touch;
+  nData.touch.north = data.action.engram.north.feel;
+  nData.touch.south = data.action.engram.south.feel;
+  nData.touch.east = data.action.engram.east.feel;
+  nData.touch.west = data.action.engram.west.feel;
 
   nData.taste = {};
   nData.taste.north = data.action.engram.north.taste;

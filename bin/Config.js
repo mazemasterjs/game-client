@@ -39,7 +39,7 @@ class Config {
         };
         this.LOG_LEVEL = this.getVar('LOG_LEVEL', 'number');
         log.LogLevel = this.LOG_LEVEL;
-        this.HTTP_PORT_GAME = this.getVar('HTTP_PORT_GAME', 'number');
+        this.HTTP_PORT = this.getVar('HTTP_PORT', 'number');
         this.SERVICE_MAZE = this.getVar('SERVICE_MAZE', 'string');
         this.SERVICE_SCORE = this.getVar('SERVICE_SCORE', 'string');
         this.SERVICE_TEAM = this.getVar('SERVICE_TEAM', 'string');

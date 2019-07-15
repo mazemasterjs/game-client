@@ -12,10 +12,10 @@
     <link href="https://fonts.googleapis.com/css?family=Quicksand&display=swap" rel="stylesheet" />
 
     <!-- jQuery / jQueryUI-->
-    <link rel="stylesheet" href="js/jquery-ui-1.12.1/jquery-ui.css" />
-    <script src="js/jquery-3.4.1.min.js"></script>
-    <script src="js/jquery-ui-1.12.1/jquery-ui.min.js"></script>
-    <script src="js/js.cookie.min.js"></script>
+    <link rel="stylesheet" href="http://mazemasterjs.com/media/js_static/jquery-ui-1.12.1/jquery-ui.css" />
+    <script src="http://mazemasterjs.com/media/js_static/js.cookie.min.js"></script>
+    <script src="http://mazemasterjs.com/media/js_static/jquery-3.4.1.min.js"></script>
+    <script src="http://mazemasterjs.com/media/js_static/jquery-ui-1.12.1/jquery-ui.min.js"></script>
 
     <!-- MazeMaster Stuff -->
     <link href="css/bot-editor.css" rel="stylesheet" type="text/css" />
@@ -24,7 +24,7 @@
   <body>
     <div class="loginGrid">
       <div class="loginGridItem">
-        <img class="loginLogo" src="images/mazemaster-logo.png" />
+        <img class="loginLogo" src="/images/mazemaster-logo.png" />
       </div>
       <div id="loginForm" class="loginGridItem">
         Login
@@ -37,6 +37,8 @@
     <div id="menu" class="loginGridItem">
       <h3>You are now logged in.</h3>
       <p><a href="bot-editor.html">BOT EDITOR</a></p>
+      <p><a href="admin/team-editor">TEAM EDITOR</a></p>
+      <p><a href="#" onclick="doLogout();">LOG OUT</a></p>
     </div>
 
     <div id="loginDialog" title="Login" style="display: none">
@@ -47,7 +49,6 @@
     'use strict';
     $().ready(async () => {
       const TEAM_URL = 'http://mazemasterjs.com/api/team/get/user';
-      //      const TEAM_URL = 'http://localhost:8083/api/team/get/user';
 
       // load the userName field automatically
       if (Cookies.get('userName') !== undefined) {
@@ -124,8 +125,15 @@
             const user = data[0];
             Cookies.set('userName', user.userName, { expires: 7 });
             Cookies.set('userCreds', enCreds, { expires: 7 });
+            Cookies.set('userRole', user.role, { expires: 7 });
+
             $('#loginForm').hide();
-            $('#menu').show();
+            if (parseInt(Cookies.get('userRole')) > 1) {
+              $('#menu').show();
+            } else {
+              window.location = 'bot-editor.html';
+            }
+
             setButtonState(true);
           })
           .catch(loginError => {
@@ -137,10 +145,6 @@
             $('#loginDialog').dialog('open');
             setButtonState(true);
           });
-      }
-
-      function stashAuthCookie(creds) {
-        Cookies.set('mazejasterjs-auth', 'creds', { expires: 7 });
       }
 
       /**
@@ -160,5 +164,12 @@
         }
       }
     });
+
+    function doLogout() {
+      Cookies.remove('userName');
+      Cookies.remove('userCreds');
+      Cookies.remove('userRoles');
+      window.location = 'index.html';
+    }
   </script>
 </html>

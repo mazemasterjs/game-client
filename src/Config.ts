@@ -17,7 +17,7 @@ export class Config {
   // singleton instance reference
   private static instance: Config;
 
-  public readonly HTTP_PORT_GAME: number;
+  public readonly HTTP_PORT: number;
   public readonly LOG_LEVEL: number;
   public readonly PRIMARY_SERVICE_ACCOUNT: string;
 
@@ -32,7 +32,7 @@ export class Config {
     this.LOG_LEVEL = this.getVar('LOG_LEVEL', 'number');
     log.LogLevel = this.LOG_LEVEL;
 
-    this.HTTP_PORT_GAME = this.getVar('HTTP_PORT_GAME', 'number');
+    this.HTTP_PORT = this.getVar('HTTP_PORT', 'number');
     this.SERVICE_MAZE = this.getVar('SERVICE_MAZE', 'string');
     this.SERVICE_SCORE = this.getVar('SERVICE_SCORE', 'string');
     this.SERVICE_TEAM = this.getVar('SERVICE_TEAM', 'string');

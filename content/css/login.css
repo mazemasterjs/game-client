@@ -50,7 +50,7 @@ input[type='submit'] {
 }
 
 #loginDialogMsg > b {
-  color: gold;
+  color: darkorange;
 }
 
 #menu {

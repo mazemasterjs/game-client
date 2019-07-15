@@ -1,0 +1,152 @@
+<%- include('header'); -%>
+<%- include('team-editor-subhead'); -%>
+
+<div id="pageContainer">
+  <h1 id="pageTitle">Team & Bot Editor</h1>
+
+  <%- include('team-display', {team, users}); -%>
+  <div id="teamControls"> 
+    <%- include('team-select', {curTeam: team}) -%>
+    <button class='btnEnabled' id="btnSave">Save</button>
+    <button class='btnEnabled' id="btnNew">New</button>
+    <button class='btnEmergencyStop' id="btnDelete">Delete</button>
+  </div>
+
+  <img id='logoPreview' src="<%= team.logo %>" class="teamLogo">
+</div>
+
+<script>
+  const USER_CREDS = Cookies.get('userCreds');
+  let dirtyData = false;
+
+  $().ready(async () => {
+
+    $('#selTeam').change(() => {
+      if (dirtyData) {
+        var r = confirm("Unsaved changes will be lost, continue?");
+        if (r != true) {
+          return;
+        }
+      }
+      window.location = `team-editor?teamId=${$('#selTeam').val()}`;
+    });
+    
+    $(window).resize(() => {
+      doResize();
+    });
+
+    doResize();
+
+    if ($('#selTeam :selected').text() == 'NEW TEAM') {
+      $('#btnDelete').remove();
+    }
+
+    $('input').change((event) =>{ console.log('input change'); dirtyData = true;});
+    $('select').change((event) =>{ console.log('select change'); dirtyData = true;});
+
+    $('#btnNew').click(() => {
+      if (dirtyData) {
+        var r = confirm("Unsaved changes will be lost, continue?");
+        if (r != true) {
+          return;
+        }
+      }
+        window.location = 'team-editor?teamId=NEW_TEAM';
+    });
+
+    $('#btnSave').click((event) => {
+      console.log('save click', event);
+      saveTeam();
+    });
+
+    fillEmptyBotIds();
+
+
+  }); // .ready()
+
+  function doResize() { 
+
+    $('#teamControls').position({
+      my: 'center top',
+      at: 'center bottom+10',
+      of: '#pageTitle',
+      collision: 'fit none'
+    });
+    
+    $('#logoPreview').position({
+      my: 'right center',
+      at: 'right-5 top',
+      of: '#teamDetails',
+      collision: 'fit none'
+    });
+  }
+
+  function saveTeam() {
+    const teamData = {};
+      teamData.name = $('#teamName').val();
+      teamData.id = $('#teamId').val();
+      teamData.logo = $('#teamLogo').val();
+      teamData.bots = [];
+
+      if (teamData.name.trim() === '') {
+        alert('Team name is required.');
+        return;
+      }
+
+      if (teamData.logo.trim() === '') {
+        teamData.logo = "http://mazemasterjs.com/media/images/team-logos/unknown.png";
+      }
+
+      const botData = $('.botDetails');
+
+      for (let pos = 0; pos < botData.length; pos++) {
+        const bd = botData[pos];
+        const botName = bd.getElementsByClassName('botName')[0].value;
+        const botId = bd.getElementsByClassName('botId')[0].value;
+
+        if (botName.trim() !== '') {
+          const selUser = bd.getElementsByClassName('selBotUser')[0];
+          let botCoder = selUser.options[selUser.options.selectedIndex].text;
+          if (botCoder === 'Select a User' || botCoder.trim() === '') { 
+            alert('Bot "' + botName + '" does not have a user assigned.');
+            return;
+          } else if (botCoder != 'DELETE_BOT') {
+            botCoder = botCoder.match(/\(.*\)/g)[0].replace('(', '').replace(')', '');
+            teamData.bots.push({id: botId, name: botName, coder: botCoder, weight: 100});
+          }
+        }
+      }
+
+      if (teamData.bots.length === 0) {
+        alert('A team needs bots... Add some.');
+        return;
+      }
+
+      let teamUrl = 'http://mazemasterjs.com/api/team';
+      if ($('#selTeam :selected').text() == 'NEW TEAM') {
+        teamUrl = teamUrl + '/insert';
+      } else {
+        teamUrl = teamUrl + '/update';
+      }
+
+      console.log('Saving Team: ', teamUrl, 'Data: ', teamData);
+
+      $.ajax({
+        url: teamUrl,
+        dataType: 'json',
+        method: 'PUT',
+        headers: { Authorization: 'Basic ' + USER_CREDS },
+        data: teamData,
+      }).then(() => {
+        window.location = 'team-editor?teamId=' + teamData.id;
+        dirtyData = false;
+      }).catch((saveErr) => {
+        alert('SAVE FAILED - ' + saveErr.responseText);
+        console.error('Save Error -> ', teamUrl, teamData, saveErr);
+      });
+
+  }
+
+</script>
+
+<%- include('footer'); -%>

@@ -1,0 +1,15 @@
+  <div id='teamDetails' class='teamContainer'>
+      <div class='label'>Team Id:</div>
+      <div><input type="text" class='viewText' id="teamId" value="<%=team.id%>" readonly></div>
+      <div></div>
+      <div class='label'>Team Name:</div>
+      <div><input type="text" class='editText' id="teamName" value="<%=team.name%>"></div>
+      <div></div>
+      <div class='label'>Team Logo:</div>
+      <div><input type="text" class='editText' id="teamLogo" value="<%=team.logo%>"></div>
+      <div></div>
+  </div>
+
+  <div id='botList'>
+    <%- include('team-bot-list', { bots: team.bots, users }); -%>
+  </div>
