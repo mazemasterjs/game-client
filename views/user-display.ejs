@@ -1,7 +1,7 @@
   <div id='userDetails' class='userContainer'>
       <div></div>
       <div class='label'>User Id:</div>
-      <div><input type="text" class='viewText' id="userID" value="<%=user.id%>" readonly></div>
+      <div><input type="text" class='viewText' id="userId" value="<%=user.id%>" readonly></div>
       <div></div>
 
       <div></div>
@@ -26,11 +26,15 @@
 
       <div></div>
       <div class='label'>Bot:</div>
-      <div><input type="text" class='editText' id="userBotId" value="<%=user.botId%>"></div>
+      <% console.log(teams);%>
+      <% let selTeamIdx = teams.findIndex((team) => { return team.id == user.teamId; }); %>
+      <% if (selTeamIdx == -1) { selTeamIdx = 0; } %>
+      <% console.log('sti: ', selTeamIdx); %>
+      <div><%- include('bot-select', { bots: teams[selTeamIdx].bots, selBotId: {id: user.botId} }) -%></div>
       <div></div>
 
       <div></div>
       <div class='label'>Password:</div>
-      <div><input type="password" class='editText' id="userPassword" value="password"></div>
+      <div><input type="password" class='editText' id="userPassword" value="<%= user.pwHash %>"></div>
       <div></div>
   </div>

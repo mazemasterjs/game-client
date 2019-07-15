@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { Config } from './Config';
 import * as fns from './funcs';
+import { MD5 as hash } from 'object-hash';
 import { LOG_LEVELS, Logger } from '@mazemasterjs/logger';
 import { Request, Response } from 'express';
 import { Team } from '@mazemasterjs/shared-library/Team';
@@ -34,6 +35,16 @@ export const serveFile = (req: Request, res: Response) => {
     return res.status(200).sendFile(absFile);
   } else {
     return res.status(404).send('Page Not Found');
+  }
+};
+
+export const quickHash = async (req: Request, res: Response) => {
+  logRequest('editTeams', req, true);
+  const textToHash = req.query.textToHash;
+  if (textToHash === undefined) {
+    return res.status(400).json({ status: 400, message: 'Query parameter "textToHash" was not found.' });
+  } else {
+    return res.json({ original: textToHash, hash: hash(textToHash) });
   }
 };
 

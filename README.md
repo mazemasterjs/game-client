@@ -7,6 +7,7 @@ The MazeMasterJS Game Client
 [ ] Render trophies and score on bot-editor
 [ ] Replace minimap with the cooler version
 [ ] Add an actual scoreboard (bummer - didn't get to it this weekend)
+[ ] Secure the quickHash route
 
 ## Change Notes
 

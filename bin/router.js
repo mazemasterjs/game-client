@@ -16,7 +16,7 @@ exports.router = express_1.default.Router();
 // team editor
 exports.router.get('/admin/team-editor', routes.editTeams);
 exports.router.get('/admin/user-editor', routes.editUsers);
-// router.get('/admin/quickhash', routes.quickHash);
+exports.router.get('/admin/quickHash', routes.quickHash);
 // map the live/ready probes
 exports.router.get('/probes/live', routes.livenessProbe);
 exports.router.get('/probes/ready', routes.readinessProbe);

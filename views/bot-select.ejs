@@ -1,0 +1,11 @@
+<select id="selBot" required>
+  <option value="" disabled hidden selected>Select a Bot</option>
+  <% bots.forEach(function(bot) { %>
+
+    <% if (bot.id == selBotId) { %>
+        <option value="<%=bot.id%>" selected><%=bot.name%></option>
+    <% } else { %>
+        <option value="<%=bot.id%>"><%=bot.name%></option>
+    <% } %>
+  <% }); %>
+</select>
