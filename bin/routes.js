@@ -23,6 +23,7 @@ const Config_1 = require("./Config");
 const fns = __importStar(require("./funcs"));
 const logger_1 = require("@mazemasterjs/logger");
 const Team_1 = require("@mazemasterjs/shared-library/Team");
+const User_1 = require("@mazemasterjs/shared-library/User");
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
 // set constant utility references
@@ -81,7 +82,33 @@ exports.editTeams = (req, res) => __awaiter(this, void 0, void 0, function* () {
         }
     }
     return res.render('team-editor.ejs', { users, teams, team });
-    //  return res.status(200).json({ status: 'ok', message: 'editTeams' });
+});
+exports.editUsers = (req, res) => __awaiter(this, void 0, void 0, function* () {
+    logRequest('editusers', req, true);
+    const userId = req.query.userId;
+    const teamUrl = config.SERVICE_TEAM + '/get';
+    const userUrl = config.SERVICE_TEAM + '/get/user';
+    const users = yield fns.doGet(userUrl);
+    const teams = yield fns.doGet(teamUrl);
+    let userIdx = 0;
+    if (userId !== undefined) {
+        if (userId === 'NEW_USER') {
+            const newUser = new User_1.User();
+            newUser.UserName = 'NEW_USER';
+            users.push(newUser);
+            userIdx = users.length - 1;
+        }
+        else {
+            userIdx = users.findIndex((user) => {
+                return user.id === userId;
+            });
+            if (userIdx === -1) {
+                userIdx = 0;
+            }
+        }
+    }
+    log.debug(__filename, 'editusers()', `${users.length} users returned.`);
+    return res.render('user-editor.ejs', { users, teams, user: users[userIdx] });
 });
 /**
  * Liveness and Readiness probe for K8s/OpenShift.

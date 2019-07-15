@@ -1,0 +1,36 @@
+  <div id='userDetails' class='userContainer'>
+      <div></div>
+      <div class='label'>User Id:</div>
+      <div><input type="text" class='viewText' id="userID" value="<%=user.id%>" readonly></div>
+      <div></div>
+
+      <div></div>
+      <div class='label'>User Name:</div>
+      <div><input type="text" class='editText' id="userName" value="<%=user.userName%>"></div>
+      <div></div>
+
+      <div></div>
+      <div class='label'>First Name:</div>
+      <div><input type="text" class='editText' id="userFirstName" value="<%=user.firstName%>"></div>
+      <div></div>
+
+      <div></div>
+      <div class='label'>Last Name:</div>
+      <div><input type="text" class='editText' id="userLastName" value="<%=user.lastName%>"></div>
+      <div></div>
+
+      <div></div>
+      <div class='label'>Team:</div>
+      <div><%- include('team-select', { curTeam: {id: user.teamId} }) -%></div>
+      <div></div>
+
+      <div></div>
+      <div class='label'>Bot:</div>
+      <div><input type="text" class='editText' id="userBotId" value="<%=user.botId%>"></div>
+      <div></div>
+
+      <div></div>
+      <div class='label'>Password:</div>
+      <div><input type="password" class='editText' id="userPassword" value="password"></div>
+      <div></div>
+  </div>

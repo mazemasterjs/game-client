@@ -4,6 +4,7 @@ import * as fns from './funcs';
 import { LOG_LEVELS, Logger } from '@mazemasterjs/logger';
 import { Request, Response } from 'express';
 import { Team } from '@mazemasterjs/shared-library/Team';
+import { User } from '@mazemasterjs/shared-library/User';
 import path from 'path';
 import fs from 'fs';
 
@@ -68,8 +69,38 @@ export const editTeams = async (req: Request, res: Response) => {
   }
 
   return res.render('team-editor.ejs', { users, teams, team });
+};
 
-  //  return res.status(200).json({ status: 'ok', message: 'editTeams' });
+export const editUsers = async (req: Request, res: Response) => {
+  logRequest('editusers', req, true);
+  const userId = req.query.userId;
+  const teamUrl = config.SERVICE_TEAM + '/get';
+  const userUrl = config.SERVICE_TEAM + '/get/user';
+
+  const users = await fns.doGet(userUrl);
+  const teams = await fns.doGet(teamUrl);
+  let userIdx = 0;
+
+  if (userId !== undefined) {
+    if (userId === 'NEW_USER') {
+      const newUser = new User();
+      newUser.UserName = 'NEW_USER';
+      users.push(newUser);
+      userIdx = users.length - 1;
+    } else {
+      userIdx = users.findIndex((user: { id: any }) => {
+        return user.id === userId;
+      });
+
+      if (userIdx === -1) {
+        userIdx = 0;
+      }
+    }
+  }
+
+  log.debug(__filename, 'editusers()', `${users.length} users returned.`);
+
+  return res.render('user-editor.ejs', { users, teams, user: users[userIdx] });
 };
 
 /**
