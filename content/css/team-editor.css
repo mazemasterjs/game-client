@@ -6,6 +6,24 @@ body {
   font-size: 16px;
 }
 
+a {
+  color: darkgoldenrod;
+  font-size: 14px;
+}
+
+a:hover {
+  color: whitesmoke;
+}
+
+p {
+  margin: 0;
+}
+
+#quickNav {
+  text-align: center;
+  width: fit-content;
+}
+
 #pageContainer {
   display: grid;
   min-width: 790px;

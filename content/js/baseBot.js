@@ -40,4 +40,4 @@ starterBotLines.push('      logMessage(LOG_TYPES.ERROR, "My bot has encountered 
 starterBotLines.push('  }');
 starterBotLines.push('}');
 
-const starterBotCode = 'basebot'; // starterBotLines.join('\n');
+const starterBotCode = starterBotLines.join('\n');

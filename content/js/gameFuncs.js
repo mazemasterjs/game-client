@@ -496,7 +496,7 @@ function versionBotCode(botId, code) {
         data: {
           botId: botId,
           version: '0.0.1',
-          code: startBotCode,
+          code: starterBotCode,
         },
       })
         .then(() => {
