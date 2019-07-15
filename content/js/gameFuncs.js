@@ -902,7 +902,7 @@ async function renderAction(result) {
 
   // log the local "here" engram
   logMsg += `<div id="${actId}_HERE" class="engramContainer" onclick="toggleEngramContent('${actId}_HERE');">`;
-  logMsg += `  <h5><span id="${actId}_HERE_icon" class="ui-icon ui-icon-plus"></span>data.<b>room</b></h5>`;
+  logMsg += `  <h5><span id="${actId}_HERE_icon" class="ui-icon ui-icon-plus"></span>GameData.<b>room</b></h5>`;
   logMsg += `  <p class='engramData' style="display:none"><b>.exitNorth=</b>${jsonToStr(nData.room.exitNorth)}</p>`;
   logMsg += `  <p class='engramData' style="display:none"><b>.exitSouth=</b>${jsonToStr(nData.room.exitSouth)}</p>`;
   logMsg += `  <p class='engramData' style="display:none"><b>.exitEast=</b>${jsonToStr(nData.room.exitEast)}</p>`;
@@ -911,7 +911,7 @@ async function renderAction(result) {
   logMsg += `</div>`;
 
   logMsg += `<div id="${actId}_SEE" class="engramContainer" onclick="toggleEngramContent('${actId}_SEE');">`;
-  logMsg += `  <h5><span id="${actId}_SEE_icon" class="ui-icon ui-icon-plus"></span>data.<b>see</b></h5>`;
+  logMsg += `  <h5><span id="${actId}_SEE_icon" class="ui-icon ui-icon-plus"></span>GameData.<b>see</b></h5>`;
   if (undefined != nData.see) {
     logMsg += `  <p class='engramData' style="display:none"><b>.north=</b>${jsonToStr(nData.see.north)}</p>`;
     logMsg += `  <p class='engramData' style="display:none"><b>.east=</b>${jsonToStr(nData.see.east)}</p>`;
@@ -921,7 +921,7 @@ async function renderAction(result) {
   logMsg += `</div>`;
 
   logMsg += `<div id="${actId}_TOUCH" class="engramContainer" onclick="toggleEngramContent('${actId}_TOUCH');">`;
-  logMsg += `  <h5><span id="${actId}_TOUCH_icon" class="ui-icon ui-icon-plus"></span>data.<b>touch</b></h5>`;
+  logMsg += `  <h5><span id="${actId}_TOUCH_icon" class="ui-icon ui-icon-plus"></span>GameData.<b>touch</b></h5>`;
   if (undefined != nData.touch) {
     logMsg += `  <p class='engramData' style="display:none"><b>.north=</b>${jsonToStr(nData.touch.north)}</p>`;
     logMsg += `  <p class='engramData' style="display:none"><b>.east=</b>${jsonToStr(nData.touch.east)}</p>`;
@@ -931,7 +931,7 @@ async function renderAction(result) {
   logMsg += `</div>`;
 
   logMsg += `<div id="${actId}_HEAR" class="engramContainer" onclick="toggleEngramContent('${actId}_HEAR');">`;
-  logMsg += `  <h5><span id="${actId}_HEAR_icon" class="ui-icon ui-icon-plus"></span>data.<b>hear</b></h5>`;
+  logMsg += `  <h5><span id="${actId}_HEAR_icon" class="ui-icon ui-icon-plus"></span>GameData.<b>hear</b></h5>`;
   if (undefined != nData.hear) {
     logMsg += `  <p class='engramData' style="display:none"><b>.north=</b>${jsonToStr(nData.hear.north)}</p>`;
     logMsg += `  <p class='engramData' style="display:none"><b>.east=</b>${jsonToStr(nData.hear.east)}</p>`;
@@ -941,7 +941,7 @@ async function renderAction(result) {
   logMsg += `</div>`;
 
   logMsg += `<div id="${actId}_SMELL" class="engramContainer" onclick="toggleEngramContent('${actId}_SMELL');">`;
-  logMsg += `  <h5><span id="${actId}_SMELL_icon" class="ui-icon ui-icon-plus"></span>data.<b>smell</b></h5>`;
+  logMsg += `  <h5><span id="${actId}_SMELL_icon" class="ui-icon ui-icon-plus"></span>GameData.<b>smell</b></h5>`;
   if (undefined != nData.smell) {
     logMsg += `  <p class='engramData' style="display:none"><b>.north=</b>${jsonToStr(nData.smell.north)}</p>`;
     logMsg += `  <p class='engramData' style="display:none"><b>.east=</b>${jsonToStr(nData.smell.east)}</p>`;
@@ -951,7 +951,7 @@ async function renderAction(result) {
   logMsg += `</div>`;
 
   logMsg += `<div id="${actId}_TASTE" class="engramContainer" onclick="toggleEngramContent('${actId}_TASTE');">`;
-  logMsg += `  <h5><span id="${actId}_TASTE_icon" class="ui-icon ui-icon-plus"></span>data.<b>taste</b></h5>`;
+  logMsg += `  <h5><span id="${actId}_TASTE_icon" class="ui-icon ui-icon-plus"></span>GameData.<b>taste</b></h5>`;
   if (undefined != nData.taste) {
     logMsg += `  <p class='engramData' style="display:none"><b>.north=</b>${jsonToStr(nData.taste.north)}</p>`;
     logMsg += `  <p class='engramData' style="display:none"><b>.east=</b>${jsonToStr(nData.taste.east)}</p>`;
