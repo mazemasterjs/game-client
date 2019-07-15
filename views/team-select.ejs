@@ -1,0 +1,10 @@
+<select id="selTeam">
+  <% teams.forEach(function(team) { %>
+
+    <% if (team.id == curTeam.id) { %>
+        <option value="<%=team.id%>" selected><%=team.name%></option>
+    <% } else { %>
+        <option value="<%=team.id%>"><%=team.name%></option>
+    <% } %>
+  <% }); %>
+</select>

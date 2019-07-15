@@ -1,0 +1,47 @@
+<% let alt = true; %>
+<% let count = 0; %>
+<% bots.forEach(function(bot){ %>
+  <% count++; %>
+  <% if (alt) { var bdClass = 'bdLeft'; alt = !alt; } else { var bdClass = 'bdRight'; alt = !alt; }%>
+  
+  <div id='bot_<%=bot.id%>' class='botDetails <%= bdClass %>'>
+    <div class='label'>Bot Id:</div>
+    <div><input type="text" class="viewText botId" value="<%=bot.id%>" readonly></div>
+    <div class='label'>Bot Name:</div>
+    <div><input type="text" class="editText botName" value="<%=bot.name%>"></div>
+    <div class='label'>Coder:</div>
+    <div>
+      <select class='selBotUser' required>
+        <option value="" disabled selected hidden>Select a User</option>
+        <% users.forEach(function(user){ %>
+          <% var userDisplay = user.firstName + ' ' + user.lastName + ' (' + user.userName + ')'; %>
+          <% var selected = bot.id == user.botId || bot.coder == user.userName ? ' selected' : ''; %>
+          <option value="<%= user.id %>"<%=selected%>><%= userDisplay %></option> 
+        <% }); %>
+        <option value="DELETE_THIS_BOT">DELETE_BOT</option>
+
+      </select>
+    </div>
+<!--    <div><input type="text" class='editText' id="botCoder" value="<%=bot.coder%>"></div> -->
+  </div>
+<% }); %>
+
+<% while (count < 36) { %>
+  <% count++; %>
+  <% if (alt) { var bdClass = 'bdLeft'; alt = !alt; } else { var bdClass = 'bdRight'; alt = !alt; }%>
+  <div class='botDetails <%= bdClass %>'>
+    <div class='label'>Bot Id:</div>
+    <div><input type="text" class="viewText botId" placeholder="auto-generated" readonly></div>
+    <div class='label'>Bot Name:</div>
+    <div><input type="text" class="editText botName" value=""></div>
+    <div class='label'>Coder:</div>
+      <select class='selBotUser' required>
+        <option value="" disabled selected hidden>Select a User</option>
+        <% users.forEach(function(user){ %>
+          <% var userDisplay = user.firstName + ' ' + user.lastName + ' (' + user.userName + ')'; %>
+          <option value="<%= user.id %>"><%=userDisplay%></option> 
+        <% }); %>
+      </select>
+  </div>
+<% } %>
+

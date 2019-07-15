@@ -1,10 +1,18 @@
+import axios from 'axios';
+import { Config } from './Config';
+import * as fns from './funcs';
 import { LOG_LEVELS, Logger } from '@mazemasterjs/logger';
 import { Request, Response } from 'express';
+import { Team } from '@mazemasterjs/shared-library/Team';
 import path from 'path';
 import fs from 'fs';
 
 // set constant utility references
 const log = Logger.getInstance();
+const config = Config.getInstance();
+
+// tslint:disable-next-line: no-string-literal
+axios.defaults.headers.common['Authorization'] = 'Basic ' + config.PRIMARY_SERVICE_ACCOUNT;
 
 /**
  * Serve up the requested file
@@ -13,7 +21,7 @@ const log = Logger.getInstance();
  * @param {Response} res
  */
 export const serveFile = (req: Request, res: Response) => {
-  logRequest('serverFile', req);
+  logRequest('serveFile', req);
   let absFile = '';
   if (req.url === '/') {
     absFile = path.resolve('content/index.html');
@@ -28,9 +36,40 @@ export const serveFile = (req: Request, res: Response) => {
   }
 };
 
-export const editTeams = (req: Request, res: Response) => {
+export const editTeams = async (req: Request, res: Response) => {
   logRequest('editTeams', req, true);
-  return res.status(200).json({ status: 'ok', message: 'editTeams' });
+  const teamUrl = config.SERVICE_TEAM + '/get';
+  const userUrl = config.SERVICE_TEAM + '/get/user';
+  const teamId = req.query.teamId;
+
+  const users = await fns.doGet(userUrl);
+  const teams = await fns.doGet(teamUrl);
+  let team = teams[0];
+
+  log.debug(__filename, 'editTeams()', `${teams.length} teams returned.`);
+
+  if (teamId !== undefined) {
+    if (teamId === 'NEW_TEAM') {
+      const newTeam: Team = new Team();
+      newTeam.Name = 'NEW TEAM';
+      newTeam.Logo = 'http://mazemasterjs.com/media/images/team-logos/unknown.png';
+      newTeam.Bots = [];
+      teams.push(newTeam);
+      team = newTeam;
+    } else {
+      const selTeam = teams.find((item: { id: any }) => {
+        return teamId === item.id;
+      });
+
+      if (selTeam !== undefined) {
+        team = selTeam;
+      }
+    }
+  }
+
+  return res.render('team-editor.ejs', { users, teams, team });
+
+  //  return res.status(200).json({ status: 'ok', message: 'editTeams' });
 };
 
 /**

@@ -37,6 +37,8 @@
     <div id="menu" class="loginGridItem">
       <h3>You are now logged in.</h3>
       <p><a href="bot-editor.html">BOT EDITOR</a></p>
+      <p><a href="admin/team-editor">TEAM EDITOR</a></p>
+      <p><a href="#" onclick="doLogout();">LOG OUT</a></p>
     </div>
 
     <div id="loginDialog" title="Login" style="display: none">
@@ -47,7 +49,6 @@
     'use strict';
     $().ready(async () => {
       const TEAM_URL = 'http://mazemasterjs.com/api/team/get/user';
-      //      const TEAM_URL = 'http://localhost:8083/api/team/get/user';
 
       // load the userName field automatically
       if (Cookies.get('userName') !== undefined) {
@@ -124,8 +125,15 @@
             const user = data[0];
             Cookies.set('userName', user.userName, { expires: 7 });
             Cookies.set('userCreds', enCreds, { expires: 7 });
+            Cookies.set('userRole', user.role, { expires: 7 });
+
             $('#loginForm').hide();
-            $('#menu').show();
+            if (parseInt(Cookies.get('userRole')) > 1) {
+              $('#menu').show();
+            } else {
+              window.location = 'bot-editor.html';
+            }
+
             setButtonState(true);
           })
           .catch(loginError => {
@@ -137,10 +145,6 @@
             $('#loginDialog').dialog('open');
             setButtonState(true);
           });
-      }
-
-      function stashAuthCookie(creds) {
-        Cookies.set('mazejasterjs-auth', 'creds', { expires: 7 });
       }
 
       /**
@@ -160,5 +164,12 @@
         }
       }
     });
+
+    function doLogout() {
+      Cookies.remove('userName');
+      Cookies.remove('userCreds');
+      Cookies.remove('userRoles');
+      window.location = 'index.html';
+    }
   </script>
 </html>

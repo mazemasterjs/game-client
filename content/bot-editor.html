@@ -29,6 +29,7 @@
     <script src="js/declarations.js"></script>
     <script src="js/skully.js"></script>
     <script src="js/cheesy.js"></script>
+    <script src="js/baseBot.js"></script>
   </head>
 
   <body>
@@ -143,7 +144,7 @@
       pageLoadComplete = false;
 
       /* CONFIGURE MONACO */
-      const startingScript = "logMessage('bot', 'I am<b>&nbsp;alive!</b>', 'Shall we play a<b>&nbsp;game?</b>');";
+      const startingScript = starterBotCode;
 
       let model = monaco.editor.createModel(startingScript, 'javascript');
 
@@ -289,7 +290,7 @@
             console.log('selBot.change() aborted - Team changing.');
             return;
           }
-          console.log('selBot.change()');
+
           resetGlobals();
           loadBotVersions($('#selBot :selected').val(), true);
 
@@ -305,8 +306,6 @@
 
         $('#selBotVersion').change(() => {
           if (pageLoadComplete) {
-            console.log('selBotVersion.change()');
-
             if (DATA_USER.role > USER_ROLES.USER) {
               loadBotCode($('#selBot :selected').val(), $('#selBotVersion :selected').val());
             } else {
