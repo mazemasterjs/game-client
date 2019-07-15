@@ -1,0 +1,67 @@
+<%- include('header'); -%>
+<%- include('user-editor-subhead'); -%>
+<div id="pageContainer">
+  <h1 id="pageTitle">User Editor<br><span style="font-size: 1rem;color:#ff0000;"> (incomplete)</span>  </h1>
+  
+
+
+  <%- include('user-display', {user, curUser: user, teams}); -%>
+
+  <div id="userControls"> 
+    <%- include('user-select', {users, curUser: user}) -%>
+    <button class='btnEnabled' id="btnSave">Save</button>
+    <button class='btnEnabled' id="btnNew">New</button>
+    <button class='btnEmergencyStop' id="btnDelete">Delete</button>
+  </div>
+</div>
+
+<script>
+  const USER_CREDS = Cookies.get('userCreds');
+  let dirtyData = false;
+
+  $().ready(async () => {
+
+    $('#selUser').change(() => {
+      if (dirtyData) {
+        var r = confirm("Unsaved changes will be lost, continue?");
+        if (r != true) {
+          return;
+        }
+      }
+      window.location = `user-editor?userId=${$('#selUser').val()}`;
+    });
+
+    $('#btnNew').click(() => {
+      if (dirtyData) {
+        var r = confirm("Unsaved changes will be lost, continue?");
+        if (r != true) {
+          return;
+        }
+      }
+        window.location = 'user-editor?userId=NEW_USER';
+    });
+
+
+
+    $(window).resize(() => {
+      doResize();
+    });
+
+    doResize();
+
+  });
+
+  function doResize() { 
+    $('#userControls').position({
+      my: 'center top',
+      at: 'center bottom+10',
+      of: '#pageTitle',
+      collision: 'fit none'
+    });
+
+  }
+
+
+</script>
+
+

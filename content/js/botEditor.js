@@ -10,15 +10,3 @@ function uuidv4() {
     return v.toString(16);
   });
 }
-
-/**
- * Fill in any empty botId fields
- */
-function fillEmptyBotIds() {
-  const botIds = $('.botId');
-  for (var x = 0; x < botIds.length; x++) {
-    if (botIds[x].value === '') {
-      botIds[x].value = uuidv4();
-    }
-  }
-}

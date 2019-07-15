@@ -1,0 +1,9 @@
+<select id="selUser">
+  <% users.forEach(function(user) { %>
+    <% if (user.id == curUser.id) { %>
+        <option value="<%=user.id%>" selected><%=user.userName%></option>
+    <% } else { %>
+        <option value="<%=user.id%>"><%=user.userName%></option>
+    <% } %>
+  <% }); %>
+</select>
