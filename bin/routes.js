@@ -21,6 +21,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const axios_1 = __importDefault(require("axios"));
 const Config_1 = require("./Config");
 const fns = __importStar(require("./funcs"));
+const object_hash_1 = require("object-hash");
 const logger_1 = require("@mazemasterjs/logger");
 const Team_1 = require("@mazemasterjs/shared-library/Team");
 const User_1 = require("@mazemasterjs/shared-library/User");
@@ -54,6 +55,16 @@ exports.serveFile = (req, res) => {
         return res.status(404).send('Page Not Found');
     }
 };
+exports.quickHash = (req, res) => __awaiter(this, void 0, void 0, function* () {
+    logRequest('editTeams', req, true);
+    const textToHash = req.query.textToHash;
+    if (textToHash === undefined) {
+        return res.status(400).json({ status: 400, message: 'Query parameter "textToHash" was not found.' });
+    }
+    else {
+        return res.json({ original: textToHash, hash: object_hash_1.MD5(textToHash) });
+    }
+});
 exports.editTeams = (req, res) => __awaiter(this, void 0, void 0, function* () {
     logRequest('editTeams', req, true);
     const teamUrl = config.SERVICE_TEAM + '/get';

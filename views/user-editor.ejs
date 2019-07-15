@@ -1,9 +1,9 @@
 <%- include('header'); -%>
 <%- include('user-editor-subhead'); -%>
 <div id="pageContainer">
+  <span id='allTeams' hidden><%= JSON.stringify(teams) %></span>
+  <span id='userPw' hidden><%= user.pwHash %></span>
   <h1 id="pageTitle">User Editor<br><span style="font-size: 1rem;color:#ff0000;"> (incomplete)</span>  </h1>
-  
-
 
   <%- include('user-display', {user, curUser: user, teams}); -%>
 
@@ -17,6 +17,7 @@
 
 <script>
   const USER_CREDS = Cookies.get('userCreds');
+  const teams = JSON.parse($('#allTeams').text());
   let dirtyData = false;
 
   $().ready(async () => {
@@ -41,7 +42,27 @@
         window.location = 'user-editor?userId=NEW_USER';
     });
 
+    $('#selTeam').change(() => {
+      console.log('SELTEAM CHANGE')
+      const selTeam = teams.find((t) => {
+        return t.id === $('#selTeam :selected').val();
+      })
 
+      $('#selBot').empty();
+      let opts = '';
+      selTeam.bots.forEach(bot => {
+        opts = opts + `<option value="${bot.id}">${bot.name}</option>`;
+      });
+      $('#selBot').html(opts);
+
+      $('input').change((event) =>{ dirtyData = true;});
+      $('select').change((event) =>{ dirtyData = true;});
+
+    });
+
+    $('#btnSave').click(() => {
+      saveUser();
+    });
 
     $(window).resize(() => {
       doResize();
@@ -61,6 +82,84 @@
 
   }
 
+  async function saveUser() {
+    const userData = {};
+    userData.id = $('#userId').val();
+    userData.userName = $('#userName').val();
+    userData.firstName = $('#userFirstName').val();
+    userData.lastName = $('#userLastName').val();
+    userData.botId = $('#selBot :selected').val();
+    userData.teamId = $('#selTeam :selected').val();
+    userData.role = 1;
+    userData.lastLogin = 0;
+    userData.pwHash = $('#userPassword').val();
+  
+    if (userData.userName.trim() === '') {
+      alert('User name is required.');
+      return;
+    }
+
+    if (userData.userName.trim().toUpperCase() === 'NEW_USER') {
+      alert('NEW_USER is unavailable - try something original.');
+      return;
+    }
+
+    if (userData.lastName.trim() === '') {
+      alert('First name is required.');
+      return;
+    }
+
+    if (userData.firstName.trim() === '') {
+      alert('Last name is required.');
+      return;
+    }
+
+    if (userData.pwHash.trim() === '') {
+      alert('Password is required.');
+      return;
+    }
+
+    if ($('#userPw').text() != $('#userPassword').val() || $('#selUser :selected').text() == 'NEW_USER') {
+      const hashUrl = 'quickHash?textToHash=' + userData.pwHash;
+      await $.ajax({
+        url: hashUrl,
+        dataType: 'json',
+        method: 'GET',
+        headers: { Authorization: 'Basic ' + USER_CREDS },
+      }).then((data) => {
+        console.log('quickHash returned: ', data);
+        userData.pwHash = data.hash;
+        dirtyData = true;
+      }).catch((saveErr) => {
+        alert('SAVE FAILED - ' + saveErr.responseText);
+        console.error('Save Error -> Unable to generate password hash. Error -> ', saveErr);
+      });
+    }
+
+    let userUrl = 'http://mazemasterjs.com/api/team';
+    if ($('#selUser :selected').text() == 'NEW_USER') {
+      userUrl = userUrl + '/insert/user';
+    } else {
+      userUrl = userUrl + '/update/user';
+    }
+
+    console.log('Saving User: ', userUrl, 'Data: ', userData);
+
+    $.ajax({
+      url: userUrl,
+      dataType: 'json',
+      method: 'PUT',
+      headers: { Authorization: 'Basic ' + USER_CREDS },
+      data: userData,
+    }).then(() => {
+      dirtyData = false;
+      // window.location = 'user-editor?userId=' + userData.id;
+    }).catch((saveErr) => {
+      alert('SAVE FAILED - ' + saveErr.responseText);
+      console.error('Save Error -> ', userUrl, userData, saveErr);
+    });
+
+  }
 
 </script>
 

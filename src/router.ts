@@ -6,7 +6,7 @@ export const router = express.Router();
 // team editor
 router.get('/admin/team-editor', routes.editTeams);
 router.get('/admin/user-editor', routes.editUsers);
-// router.get('/admin/quickhash', routes.quickHash);
+router.get('/admin/quickHash', routes.quickHash);
 
 // map the live/ready probes
 router.get('/probes/live', routes.livenessProbe);

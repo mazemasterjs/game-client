@@ -1,4 +1,6 @@
-<select id="selTeam">
+<select id="selTeam" required>
+  <option value="" disabled hidden selected>Select a Team</option>
+
   <% teams.forEach(function(team) { %>
 
     <% if (team.id == curTeam.id) { %>
