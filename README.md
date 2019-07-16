@@ -11,6 +11,10 @@ The MazeMasterJS Game Client
 
 ## Change Notes
 
+### v1.1.1
+
+- fixed GameData type error (.feel changed to .touch)
+
 ### v1.1.0
 
 - Team Editor is functional and complete enough for camp.

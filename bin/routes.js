@@ -27,7 +27,6 @@ const Team_1 = require("@mazemasterjs/shared-library/Team");
 const User_1 = require("@mazemasterjs/shared-library/User");
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
-const Enums_1 = require("@mazemasterjs/shared-library/Enums");
 // set constant utility references
 const log = logger_1.Logger.getInstance();
 const config = Config_1.Config.getInstance();
@@ -49,9 +48,9 @@ exports.scoreboard = (req, res) => __awaiter(this, void 0, void 0, function* () 
     log.debug(__filename, 'scoreboard(req, res)', 'Getting Mazes');
     const mazes = yield fns.doGet(mazeUrl);
     log.debug(__filename, 'scoreboard(req, res)', `${mazes.length} maze stub documents retrieved.`);
-    log.debug(__filename, 'scoreboard(req, res)', 'Getting Scores');
-    const scores = yield fns
-        .doGet(scoreUrl)
+    log.debug(__filename, 'scoreboard(req, res)', 'Getting Scores, GAME_RESULT.WIN');
+    let scoresWin = yield fns
+        .doGet(scoreUrl + '?gameResult=7')
         .then(scoreData => {
         log.debug(__filename, 'scoreboard(req, res)', `${scoreData.length} score documents retrieved.`);
         return scoreData;
@@ -60,6 +59,17 @@ exports.scoreboard = (req, res) => __awaiter(this, void 0, void 0, function* () 
         log.error(__filename, 'scoreboard(req, res)', 'Error retrieving scores ->', scoreErr);
         res.status(500).send(JSON.stringify(scoreErr));
     });
+    const scoresFlawless = yield fns
+        .doGet(scoreUrl + '?gameResult=8')
+        .then(scoreData => {
+        log.debug(__filename, 'scoreboard(req, res)', `${scoreData.length} score documents retrieved.`);
+        return scoreData;
+    })
+        .catch(scoreErr => {
+        log.error(__filename, 'scoreboard(req, res)', 'Error retrieving scores ->', scoreErr);
+        res.status(500).send(JSON.stringify(scoreErr));
+    });
+    scoresWin = scoresWin.concat(scoresFlawless);
     const allBots = new Array();
     teams.forEach((team) => {
         team.bots.forEach((bot) => {
@@ -67,16 +77,16 @@ exports.scoreboard = (req, res) => __awaiter(this, void 0, void 0, function* () 
         });
     });
     const allScores = [];
-    scores.forEach((score) => {
+    scoresWin.forEach((score) => {
         const team = teams.find((t) => t.id === score.teamId);
         const maze = mazes.find((m) => m.id === score.mazeId);
         const bot = allBots.find((b) => b.id === score.botId);
-        if ((score.gameResult === Enums_1.GAME_RESULTS.WIN || score.gameResult === Enums_1.GAME_RESULTS.WIN_FLAWLESS) && maze.challenge > 0 && maze.name.indexOf('DEBUG') === -1) {
+        if (maze.challenge > 0 && maze.name.indexOf('DEBUG') === -1) {
             allScores.push({ score, maze, team, bot });
         }
     });
     allScores.sort((ts1, ts2) => {
-        return ts2.maze.name.localeCompare(ts1.maze.name) || ts2.score.totalScore - ts1.score.totalScore || ts1.score.lastUpdated - ts2.score.lastUpdated;
+        return ts2.maze.name.localeCompare(ts1.maze.name) || ts2.score.totalScore - ts1.score.totalScore || ts2.score.lastUpdated - ts1.score.lastUpdated;
     });
     const topScores = [];
     mazes.forEach((maze) => {

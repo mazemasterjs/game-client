@@ -164,7 +164,7 @@ declarations.push('  room: IRoomData;');
 declarations.push('  see: ISeeData;');
 declarations.push('  hear: IHearData;');
 declarations.push('  smell: ISmellData;');
-declarations.push('  feel: IFeelData;');
+declarations.push('  touch: IFeelData;');
 declarations.push('  taste: ITasteData;');
 declarations.push('}');
 

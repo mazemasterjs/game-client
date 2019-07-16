@@ -22,7 +22,7 @@
         <div class='textVal'><%= ts.bot.coder %> <span class='botName'>(<%= ts.bot.name %>)</span></div>
         <div class='textVal'><%= ts.maze.name %></div>
         <div class='numVal'><%= ts.maze.challenge %></div>
-        <div class='dateVal'><%= date.toLocaleDateString() %> at <%= date.toLocaleTimeString() %></div>
+        <div class='dateVal'><%= date.toLocaleDateString("en-US", {timeZone: "America/New_York"}) %> at <%= date.toLocaleTimeString("en-US", {timeZone: "America/New_York"}) %></div>
         <div class='numVal'><%= ts.score.totalScore %></div>
         <div class='numVal'><%= ts.score.trophyStubs.length %></div>
     <% }); %>

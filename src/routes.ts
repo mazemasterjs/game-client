@@ -40,9 +40,9 @@ export const scoreboard = async (req: Request, res: Response) => {
   const mazes = await fns.doGet(mazeUrl);
   log.debug(__filename, 'scoreboard(req, res)', `${mazes.length} maze stub documents retrieved.`);
 
-  log.debug(__filename, 'scoreboard(req, res)', 'Getting Scores');
-  const scores = await fns
-    .doGet(scoreUrl)
+  log.debug(__filename, 'scoreboard(req, res)', 'Getting Scores, GAME_RESULT.WIN');
+  let scoresWin = await fns
+    .doGet(scoreUrl + '?gameResult=7')
     .then(scoreData => {
       log.debug(__filename, 'scoreboard(req, res)', `${scoreData.length} score documents retrieved.`);
       return scoreData;
@@ -52,6 +52,19 @@ export const scoreboard = async (req: Request, res: Response) => {
       res.status(500).send(JSON.stringify(scoreErr));
     });
 
+  const scoresFlawless = await fns
+    .doGet(scoreUrl + '?gameResult=8')
+    .then(scoreData => {
+      log.debug(__filename, 'scoreboard(req, res)', `${scoreData.length} score documents retrieved.`);
+      return scoreData;
+    })
+    .catch(scoreErr => {
+      log.error(__filename, 'scoreboard(req, res)', 'Error retrieving scores ->', scoreErr);
+      res.status(500).send(JSON.stringify(scoreErr));
+    });
+
+  scoresWin = scoresWin.concat(scoresFlawless);
+
   const allBots = new Array<IBot>();
   teams.forEach((team: { bots: { forEach: (arg0: (bot: IBot) => void) => void } }) => {
     team.bots.forEach((bot: IBot) => {
@@ -60,17 +73,18 @@ export const scoreboard = async (req: Request, res: Response) => {
   });
 
   const allScores: { score: IScore; maze: IMazeStub; team: any; bot: IBot | undefined }[] = [];
-  scores.forEach((score: IScore) => {
+
+  scoresWin.forEach((score: IScore) => {
     const team = teams.find((t: { id: any }) => t.id === score.teamId);
     const maze: IMazeStub = mazes.find((m: { id: any }) => m.id === score.mazeId);
     const bot = allBots.find((b: { id: any }) => b.id === score.botId);
-    if ((score.gameResult === GAME_RESULTS.WIN || score.gameResult === GAME_RESULTS.WIN_FLAWLESS) && maze.challenge > 0 && maze.name.indexOf('DEBUG') === -1) {
+    if (maze.challenge > 0 && maze.name.indexOf('DEBUG') === -1) {
       allScores.push({ score, maze, team, bot });
     }
   });
 
   allScores.sort((ts1, ts2) => {
-    return ts2.maze.name.localeCompare(ts1.maze.name) || ts2.score.totalScore - ts1.score.totalScore || ts1.score.lastUpdated - ts2.score.lastUpdated;
+    return ts2.maze.name.localeCompare(ts1.maze.name) || ts2.score.totalScore - ts1.score.totalScore || ts2.score.lastUpdated - ts1.score.lastUpdated;
   });
 
   const topScores: { score: IScore; maze: IMazeStub; teamName: string; bot: IBot }[] = [];
@@ -107,6 +121,7 @@ export const scoreboard = async (req: Request, res: Response) => {
                 log.debug(__filename, 'scoreboard(req, res)', `campers-only filter applied - score from ${curScore.team.name} will not be shown.`);
               } else {
                 mazeScoreCount++;
+
                 topScores.push({
                   score: curScore.score,
                   maze: curScore.maze,
@@ -224,7 +239,6 @@ export const editUsers = async (req: Request, res: Response) => {
   }
 
   log.debug(__filename, 'editusers()', `${users.length} users returned.`);
-
   return res.render('user-editor.ejs', { users, teams, user: users[userIdx] });
 };
 
