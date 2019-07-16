@@ -90,11 +90,13 @@ exports.scoreboard = (req, res) => __awaiter(this, void 0, void 0, function* () 
                 while (tMazeIdx < allScores.length && allScores[tMazeIdx].maze.id === maze.id && mazeScoreCount < 3) {
                     const curScore = allScores[tMazeIdx];
                     if (curScore.bot !== undefined && curScore.maze.id === maze.id) {
-                        curScore.score.totalScore = curScore.score.totalScore * curScore.maze.challenge;
                         // check for duplicate scores (bot re-runs) form same player
                         const tsIdx = topScores.findIndex(ts => {
                             if (curScore.bot !== undefined) {
                                 return ts.maze.id === curScore.maze.id && ts.score.totalScore === curScore.score.totalScore && ts.bot.id === curScore.bot.id;
+                            }
+                            else {
+                                return false;
                             }
                         });
                         // don't push if it's a dupe/re-run

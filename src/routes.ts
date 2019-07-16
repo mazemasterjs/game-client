@@ -88,12 +88,12 @@ export const scoreboard = async (req: Request, res: Response) => {
           const curScore = allScores[tMazeIdx];
 
           if (curScore.bot !== undefined && curScore.maze.id === maze.id) {
-            curScore.score.totalScore = curScore.score.totalScore * curScore.maze.challenge;
-
             // check for duplicate scores (bot re-runs) form same player
             const tsIdx = topScores.findIndex(ts => {
               if (curScore.bot !== undefined) {
                 return ts.maze.id === curScore.maze.id && ts.score.totalScore === curScore.score.totalScore && ts.bot.id === curScore.bot.id;
+              } else {
+                return false;
               }
             });
 
