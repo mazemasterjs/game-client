@@ -6,8 +6,12 @@ import { LOG_LEVELS, Logger } from '@mazemasterjs/logger';
 import { Request, Response } from 'express';
 import { Team } from '@mazemasterjs/shared-library/Team';
 import { User } from '@mazemasterjs/shared-library/User';
+import { IScore } from '@mazemasterjs/shared-library/Interfaces/IScore';
+import { IMazeStub } from '@mazemasterjs/shared-library/Interfaces/IMazeStub';
 import path from 'path';
 import fs from 'fs';
+import { IBot } from '@mazemasterjs/shared-library/Interfaces/IBot';
+import { GAME_RESULTS } from '@mazemasterjs/shared-library/Enums';
 
 // set constant utility references
 const log = Logger.getInstance();
@@ -15,6 +19,116 @@ const config = Config.getInstance();
 
 // tslint:disable-next-line: no-string-literal
 axios.defaults.headers.common['Authorization'] = 'Basic ' + config.PRIMARY_SERVICE_ACCOUNT;
+
+export const scoreboard = async (req: Request, res: Response) => {
+  logRequest('scoreboard', req, true);
+  const filter = req.query.filter;
+  const scoreUrl = config.SERVICE_SCORE + '/get';
+  const teamUrl = config.SERVICE_TEAM + '/get';
+  const userUrl = config.SERVICE_TEAM + '/get/user';
+  const mazeUrl = config.SERVICE_MAZE + '/get';
+
+  log.debug(__filename, 'scoreboard(req, res)', 'Getting Users');
+  const users = await fns.doGet(userUrl);
+  log.debug(__filename, 'scoreboard(req, res)', `${users.length} user documents retrieved.`);
+
+  log.debug(__filename, 'scoreboard(req, res)', 'Getting Teams');
+  const teams = await fns.doGet(teamUrl);
+  log.debug(__filename, 'scoreboard(req, res)', `${teams.length} team documents retrieved.`);
+
+  log.debug(__filename, 'scoreboard(req, res)', 'Getting Mazes');
+  const mazes = await fns.doGet(mazeUrl);
+  log.debug(__filename, 'scoreboard(req, res)', `${mazes.length} maze stub documents retrieved.`);
+
+  log.debug(__filename, 'scoreboard(req, res)', 'Getting Scores');
+  const scores = await fns
+    .doGet(scoreUrl)
+    .then(scoreData => {
+      log.debug(__filename, 'scoreboard(req, res)', `${scoreData.length} score documents retrieved.`);
+      return scoreData;
+    })
+    .catch(scoreErr => {
+      log.error(__filename, 'scoreboard(req, res)', 'Error retrieving scores ->', scoreErr);
+      res.status(500).send(JSON.stringify(scoreErr));
+    });
+
+  const allBots = new Array<IBot>();
+  teams.forEach((team: { bots: { forEach: (arg0: (bot: IBot) => void) => void } }) => {
+    team.bots.forEach((bot: IBot) => {
+      allBots.push(bot);
+    });
+  });
+
+  const allScores: { score: IScore; maze: IMazeStub; team: any; bot: IBot | undefined }[] = [];
+  scores.forEach((score: IScore) => {
+    const team = teams.find((t: { id: any }) => t.id === score.teamId);
+    const maze: IMazeStub = mazes.find((m: { id: any }) => m.id === score.mazeId);
+    const bot = allBots.find((b: { id: any }) => b.id === score.botId);
+    if ((score.gameResult === GAME_RESULTS.WIN || score.gameResult === GAME_RESULTS.WIN_FLAWLESS) && maze.challenge > 0 && maze.name.indexOf('DEBUG') === -1) {
+      allScores.push({ score, maze, team, bot });
+    }
+  });
+
+  allScores.sort((ts1, ts2) => {
+    return ts2.maze.name.localeCompare(ts1.maze.name) || ts2.score.totalScore - ts1.score.totalScore || ts1.score.lastUpdated - ts2.score.lastUpdated;
+  });
+
+  const topScores: { score: IScore; maze: IMazeStub; teamName: string; bot: IBot }[] = [];
+  mazes.forEach((maze: IMazeStub) => {
+    if (maze.challenge > 0 && maze.name.indexOf('DEBUG') === -1) {
+      let tMazeIdx = allScores.findIndex(score => {
+        return score.maze.id === maze.id;
+      });
+
+      // grab up to the top three scores for each maze
+      if (tMazeIdx !== -1) {
+        let mazeScoreCount = 0;
+
+        while (tMazeIdx < allScores.length && allScores[tMazeIdx].maze.id === maze.id && mazeScoreCount < 3) {
+          const curScore = allScores[tMazeIdx];
+
+          if (curScore.bot !== undefined && curScore.maze.id === maze.id) {
+            curScore.score.totalScore = curScore.score.totalScore * curScore.maze.challenge;
+
+            // check for duplicate scores (bot re-runs) form same player
+            const tsIdx = topScores.findIndex(ts => {
+              if (curScore.bot !== undefined) {
+                return ts.maze.id === curScore.maze.id && ts.score.totalScore === curScore.score.totalScore && ts.bot.id === curScore.bot.id;
+              }
+            });
+
+            // don't push if it's a dupe/re-run
+            if (tsIdx === -1) {
+              // apply filter
+              if (
+                filter === 'campers' &&
+                (curScore.team.name === 'The Dev Team' || curScore.team.name === 'Intern Invasion' || curScore.team.name === 'Guest Players')
+              ) {
+                log.debug(__filename, 'scoreboard(req, res)', `campers-only filter applied - score from ${curScore.team.name} will not be shown.`);
+              } else {
+                mazeScoreCount++;
+                topScores.push({
+                  score: curScore.score,
+                  maze: curScore.maze,
+                  teamName: curScore.team.name,
+                  bot: curScore.bot,
+                });
+              }
+            }
+          }
+          tMazeIdx++; // next score in list
+        }
+      }
+    }
+  });
+
+  topScores.sort((s1, s2) => {
+    return s2.maze.challenge - s1.maze.challenge || s2.maze.name.localeCompare(s1.maze.name);
+  });
+
+  // render the scoreboard
+  res.render('scoreboard.ejs', { topScores });
+};
 
 /**
  * Serve up the requested file
@@ -39,7 +153,7 @@ export const serveFile = (req: Request, res: Response) => {
 };
 
 export const quickHash = async (req: Request, res: Response) => {
-  logRequest('editTeams', req, true);
+  logRequest('quickHash', req, true);
   const textToHash = req.query.textToHash;
   if (textToHash === undefined) {
     return res.status(400).json({ status: 400, message: 'Query parameter "textToHash" was not found.' });

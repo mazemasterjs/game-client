@@ -1,7 +1,5 @@
-const TEAM_URL = 'http://mazemasterjs.com/api/team';
-
 /**
- * uuid generator ripped from stackoverflow
+ * uuid generator ripped from stackoverflow and modified
  */
 function uuidv4() {
   return 'xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g, function(c) {

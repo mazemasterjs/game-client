@@ -27,11 +27,105 @@ const Team_1 = require("@mazemasterjs/shared-library/Team");
 const User_1 = require("@mazemasterjs/shared-library/User");
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
+const Enums_1 = require("@mazemasterjs/shared-library/Enums");
 // set constant utility references
 const log = logger_1.Logger.getInstance();
 const config = Config_1.Config.getInstance();
 // tslint:disable-next-line: no-string-literal
 axios_1.default.defaults.headers.common['Authorization'] = 'Basic ' + config.PRIMARY_SERVICE_ACCOUNT;
+exports.scoreboard = (req, res) => __awaiter(this, void 0, void 0, function* () {
+    logRequest('scoreboard', req, true);
+    const filter = req.query.filter;
+    const scoreUrl = config.SERVICE_SCORE + '/get';
+    const teamUrl = config.SERVICE_TEAM + '/get';
+    const userUrl = config.SERVICE_TEAM + '/get/user';
+    const mazeUrl = config.SERVICE_MAZE + '/get';
+    log.debug(__filename, 'scoreboard(req, res)', 'Getting Users');
+    const users = yield fns.doGet(userUrl);
+    log.debug(__filename, 'scoreboard(req, res)', `${users.length} user documents retrieved.`);
+    log.debug(__filename, 'scoreboard(req, res)', 'Getting Teams');
+    const teams = yield fns.doGet(teamUrl);
+    log.debug(__filename, 'scoreboard(req, res)', `${teams.length} team documents retrieved.`);
+    log.debug(__filename, 'scoreboard(req, res)', 'Getting Mazes');
+    const mazes = yield fns.doGet(mazeUrl);
+    log.debug(__filename, 'scoreboard(req, res)', `${mazes.length} maze stub documents retrieved.`);
+    log.debug(__filename, 'scoreboard(req, res)', 'Getting Scores');
+    const scores = yield fns
+        .doGet(scoreUrl)
+        .then(scoreData => {
+        log.debug(__filename, 'scoreboard(req, res)', `${scoreData.length} score documents retrieved.`);
+        return scoreData;
+    })
+        .catch(scoreErr => {
+        log.error(__filename, 'scoreboard(req, res)', 'Error retrieving scores ->', scoreErr);
+        res.status(500).send(JSON.stringify(scoreErr));
+    });
+    const allBots = new Array();
+    teams.forEach((team) => {
+        team.bots.forEach((bot) => {
+            allBots.push(bot);
+        });
+    });
+    const allScores = [];
+    scores.forEach((score) => {
+        const team = teams.find((t) => t.id === score.teamId);
+        const maze = mazes.find((m) => m.id === score.mazeId);
+        const bot = allBots.find((b) => b.id === score.botId);
+        if ((score.gameResult === Enums_1.GAME_RESULTS.WIN || score.gameResult === Enums_1.GAME_RESULTS.WIN_FLAWLESS) && maze.challenge > 0 && maze.name.indexOf('DEBUG') === -1) {
+            allScores.push({ score, maze, team, bot });
+        }
+    });
+    allScores.sort((ts1, ts2) => {
+        return ts2.maze.name.localeCompare(ts1.maze.name) || ts2.score.totalScore - ts1.score.totalScore || ts1.score.lastUpdated - ts2.score.lastUpdated;
+    });
+    const topScores = [];
+    mazes.forEach((maze) => {
+        if (maze.challenge > 0 && maze.name.indexOf('DEBUG') === -1) {
+            let tMazeIdx = allScores.findIndex(score => {
+                return score.maze.id === maze.id;
+            });
+            // grab up to the top three scores for each maze
+            if (tMazeIdx !== -1) {
+                let mazeScoreCount = 0;
+                while (tMazeIdx < allScores.length && allScores[tMazeIdx].maze.id === maze.id && mazeScoreCount < 3) {
+                    const curScore = allScores[tMazeIdx];
+                    if (curScore.bot !== undefined && curScore.maze.id === maze.id) {
+                        curScore.score.totalScore = curScore.score.totalScore * curScore.maze.challenge;
+                        // check for duplicate scores (bot re-runs) form same player
+                        const tsIdx = topScores.findIndex(ts => {
+                            if (curScore.bot !== undefined) {
+                                return ts.maze.id === curScore.maze.id && ts.score.totalScore === curScore.score.totalScore && ts.bot.id === curScore.bot.id;
+                            }
+                        });
+                        // don't push if it's a dupe/re-run
+                        if (tsIdx === -1) {
+                            // apply filter
+                            if (filter === 'campers' &&
+                                (curScore.team.name === 'The Dev Team' || curScore.team.name === 'Intern Invasion' || curScore.team.name === 'Guest Players')) {
+                                log.debug(__filename, 'scoreboard(req, res)', `campers-only filter applied - score from ${curScore.team.name} will not be shown.`);
+                            }
+                            else {
+                                mazeScoreCount++;
+                                topScores.push({
+                                    score: curScore.score,
+                                    maze: curScore.maze,
+                                    teamName: curScore.team.name,
+                                    bot: curScore.bot,
+                                });
+                            }
+                        }
+                    }
+                    tMazeIdx++; // next score in list
+                }
+            }
+        }
+    });
+    topScores.sort((s1, s2) => {
+        return s2.maze.challenge - s1.maze.challenge || s2.maze.name.localeCompare(s1.maze.name);
+    });
+    // render the scoreboard
+    res.render('scoreboard.ejs', { topScores });
+});
 /**
  * Serve up the requested file
  *
@@ -56,7 +150,7 @@ exports.serveFile = (req, res) => {
     }
 };
 exports.quickHash = (req, res) => __awaiter(this, void 0, void 0, function* () {
-    logRequest('editTeams', req, true);
+    logRequest('quickHash', req, true);
     const textToHash = req.query.textToHash;
     if (textToHash === undefined) {
         return res.status(400).json({ status: 400, message: 'Query parameter "textToHash" was not found.' });

@@ -1,0 +1,12 @@
+@ocpKey = b3BlbnNoaWZ0Ok9wZW5TaGlmdF9QYXNzd29yZA==
+
+### Rquest some scores
+GET http://mazemasterjs.com/api/score/count HTTP/1.1
+Authorization: Basic {{ocpKey}}
+Content-Type: application/json
+
+
+### Get all scores
+GET http://mazemasterjs.com/api/score/get HTTP/1.1
+Authorization: Basic {{ocpKey}}
+Content-Type: application/json

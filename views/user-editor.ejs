@@ -15,6 +15,14 @@
   </div>
 </div>
 
+<div id='quickNav'>
+  <p><a href="/bot-editor.html">BOT EDITOR</a></p>
+  <p><a href="/scoreboard">SCOREBOARD</a></p>
+  <p><a href="team-editor">TEAM EDITOR</a></p>
+  <p><a href="user-editor">USER EDITOR</a></p>
+  <p><a href="#" onclick="doLogout();">LOG OUT</a></p>
+</div>
+
 <script>
   const USER_CREDS = Cookies.get('userCreds');
   const teams = JSON.parse($('#allTeams').text());
@@ -80,6 +88,12 @@
       collision: 'fit none'
     });
 
+    $('#quickNav').position({
+      my: 'left top',
+      at: 'left top',
+      of: '#pageContainer',
+      collision: 'fit none'
+    });
   }
 
   async function saveUser() {
@@ -163,4 +177,4 @@
 
 </script>
 
-
+<%- include('footer'); -%>
