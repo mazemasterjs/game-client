@@ -138,7 +138,7 @@ export const scoreboard = async (req: Request, res: Response) => {
   });
 
   topScores.sort((s1, s2) => {
-    return s2.maze.challenge - s1.maze.challenge || s2.maze.name.localeCompare(s1.maze.name);
+    return s2.maze.challenge - s1.maze.challenge || s2.maze.name.localeCompare(s1.maze.name) || s2.score.totalScore - s1.score.totalScore;
   });
 
   // render the scoreboard
