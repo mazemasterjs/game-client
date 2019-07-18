@@ -175,7 +175,7 @@
       data: userData,
     }).then(() => {
       dirtyData = false;
-      // window.location = 'user-editor?userId=' + userData.id;
+      window.location = 'user-editor?userId=' + userData.id;
     }).catch((saveErr) => {
       alert('SAVE FAILED - ' + saveErr.responseText);
       console.error('Save Error -> ', userUrl, userData, saveErr);

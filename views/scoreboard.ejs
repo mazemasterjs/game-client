@@ -19,9 +19,13 @@
         <% const date = new Date(ts.score.lastUpdated); %>
         <div class='numVal'><%= rank %></div>
         <div class='textVal'><%= ts.teamName %></div>
-        <div class='textVal'><%= ts.bot.coder %> <span class='botName'>(<%= ts.bot.name %>)</span></div>
-        <div class='textVal'><%= ts.maze.name %></div>
-        <div class='numVal'><%= ts.maze.challenge %></div>
+        <% if (ts.bot !== undefined ) { %> 
+          <div class='textVal'><%= ts.bot.coder %> <span class='botName'>(<%= ts.bot.name %>)</span></div>
+        <% } else { %>
+          <div class='textVal'><span class='teamGame'>TEAM GAME</span></div>
+        <% } %>
+        <div class='textVal'><%= ts.mazeName %></div>
+        <div class='numVal'><%= ts.mazeLevel %></div>
         <div class='dateVal'><%= date.toLocaleDateString("en-US", {timeZone: "America/New_York"}) %> at <%= date.toLocaleTimeString("en-US", {timeZone: "America/New_York"}) %></div>
         <div class='numVal'><%= ts.score.totalScore %></div>
         <div class='numVal'><%= ts.score.trophyStubs.length %></div>

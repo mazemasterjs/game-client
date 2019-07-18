@@ -3,8 +3,8 @@
 /* eslint-disable no-unused-vars */
 const MAZE_URL = 'http://mazemasterjs.com/api/maze';
 // const GAME_URL = 'http://game-server-maze-master-js.b9ad.pro-us-east-1.openshiftapps.com/game';
-const GAME_URL = 'http://mazemasterjs.com/game';
-// const GAME_URL = 'http://localhost:8081/game';
+//const GAME_URL = 'http://mazemasterjs.com/game';
+const GAME_URL = 'http://localhost:8081/game';
 const TEAM_URL = 'http://mazemasterjs.com/api/team';
 const TROPHY_URL = 'http://mazemasterjs.com/api/trophy';
 
@@ -871,7 +871,7 @@ async function executeAction(action) {
 
 function logTrophies(trophies) {
   trophies.forEach(trophy => {
-    let tData = DATA_TROPHIES.find((tItem) => {
+    let tData = DATA_TROPHIES.find(tItem => {
       return tItem.id == trophy.id;
     });
     // {id: "CHEDDAR_DINNER", name: "Winner, Winner, Cheddar Dinner", description: "You escaped the maze!", bonusAward: 500}
@@ -881,9 +881,15 @@ function logTrophies(trophies) {
     } else if (tData.bonusAward == 0) {
       msgBody = msgBody + `<br /><br />It's <b>not worth any bonus points</b>, but wouldn't look terrible on your shelf. Or in the trash. Whatever.`;
     } else {
-       msgBody = msgBody + `<br /><br />We gleefully regret to inform you that you've been 'awarded' <b>NEGATIVE ${Math.abs(tData.bonusAward)} BONUS POINTS</b>. Let's try to not do <b>that</b> again, shall we?`;
+      msgBody =
+        msgBody +
+        `<br /><br />We gleefully regret to inform you that you've been 'awarded' <b>NEGATIVE ${Math.abs(
+          tData.bonusAward,
+        )} BONUS POINTS</b>. Let's try to not do <b>that</b> again, shall we?`;
     }
-    msgBody = msgBody + `<br /><br />There's a message on a little, metal plate at the trophy's base. It reads:&nbsp;&nbsp;<p class="trophyMessage">"${tData.description}"</p>`;
+    msgBody =
+      msgBody +
+      `<br /><br />There's a message on a little, metal plate at the trophy's base. It reads:&nbsp;&nbsp;<p class="trophyMessage">"${tData.description}"</p>`;
 
     logMessage('trophy', '<img src="../images/trophy-white.svg">' + tData.name + '<img src="../images/trophy-white.svg">', msgBody);
   });
@@ -1017,6 +1023,7 @@ async function renderAction(result) {
         win = true;
         msg += ' - You won!';
         logMessage('win', msg, getEndGameImg('win'));
+
         break;
       case GAME_RESULTS.WIN_FLAWLESS:
         win = true;

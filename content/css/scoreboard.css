@@ -37,6 +37,11 @@ body {
   text-align: center;
 }
 
+.teamGame {
+  font-weight: bold;
+  color: whitesmoke;
+}
+
 .dateVal {
   color: antiquewhite;
   font-size: 1.25rem;
