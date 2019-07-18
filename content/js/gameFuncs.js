@@ -3,8 +3,8 @@
 /* eslint-disable no-unused-vars */
 const MAZE_URL = 'http://mazemasterjs.com/api/maze';
 // const GAME_URL = 'http://game-server-maze-master-js.b9ad.pro-us-east-1.openshiftapps.com/game';
-//const GAME_URL = 'http://mazemasterjs.com/game';
-const GAME_URL = 'http://localhost:8081/game';
+const GAME_URL = 'http://mazemasterjs.com/game';
+// const GAME_URL = 'http://localhost:8081/game';
 const TEAM_URL = 'http://mazemasterjs.com/api/team';
 const TROPHY_URL = 'http://mazemasterjs.com/api/trophy';
 
