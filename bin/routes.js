@@ -30,26 +30,37 @@ const fs_1 = __importDefault(require("fs"));
 // set constant utility references
 const log = logger_1.Logger.getInstance();
 const config = Config_1.Config.getInstance();
+// some url consts
+const scoreUrl = config.SERVICE_SCORE + '/get';
+const teamUrl = config.SERVICE_TEAM + '/get';
+const userUrl = config.SERVICE_TEAM + '/get/user';
+const mazeUrl = config.SERVICE_MAZE + '/get';
 // tslint:disable-next-line: no-string-literal
 axios_1.default.defaults.headers.common['Authorization'] = 'Basic ' + config.PRIMARY_SERVICE_ACCOUNT;
+let users;
+let teams;
+let mazes;
+function loadRootData() {
+    return __awaiter(this, void 0, void 0, function* () {
+        log.warn(__filename, 'loadRootData()', 'LOADING ROOT DATA');
+        log.debug(__filename, 'scoreboard(req, res)', 'Getting Users');
+        users = yield fns.doGet(userUrl);
+        log.debug(__filename, 'scoreboard(req, res)', `${users.length} user documents retrieved.`);
+        log.debug(__filename, 'scoreboard(req, res)', 'Getting Teams');
+        teams = yield fns.doGet(teamUrl);
+        log.debug(__filename, 'scoreboard(req, res)', `${teams.length} team documents retrieved.`);
+        log.debug(__filename, 'scoreboard(req, res)', 'Getting Mazes');
+        mazes = yield fns.doGet(mazeUrl);
+        log.debug(__filename, 'scoreboard(req, res)', `${mazes.length} maze stub documents retrieved.`);
+    });
+}
 exports.scoreboard = (req, res) => __awaiter(this, void 0, void 0, function* () {
+    if (!mazes || !teams || !users) {
+        yield loadRootData();
+    }
     logRequest('scoreboard', req, true);
-    return res.status(200).send('Temporarily Disbled');
     const filter = req.query.filter;
     const teamGames = req.query.teamGames;
-    const scoreUrl = config.SERVICE_SCORE + '/get';
-    const teamUrl = config.SERVICE_TEAM + '/get';
-    const userUrl = config.SERVICE_TEAM + '/get/user';
-    const mazeUrl = config.SERVICE_MAZE + '/get';
-    log.debug(__filename, 'scoreboard(req, res)', 'Getting Users');
-    const users = yield fns.doGet(userUrl);
-    log.debug(__filename, 'scoreboard(req, res)', `${users.length} user documents retrieved.`);
-    log.debug(__filename, 'scoreboard(req, res)', 'Getting Teams');
-    let teams = yield fns.doGet(teamUrl);
-    log.debug(__filename, 'scoreboard(req, res)', `${teams.length} team documents retrieved.`);
-    log.debug(__filename, 'scoreboard(req, res)', 'Getting Mazes');
-    const mazes = yield fns.doGet(mazeUrl);
-    log.debug(__filename, 'scoreboard(req, res)', `${mazes.length} maze stub documents retrieved.`);
     let teamQuery = '';
     if (filter === 'campers') {
         const camperTeams = new Array();
@@ -121,11 +132,10 @@ exports.quickHash = (req, res) => __awaiter(this, void 0, void 0, function* () {
 });
 exports.editTeams = (req, res) => __awaiter(this, void 0, void 0, function* () {
     logRequest('editTeams', req, true);
-    const teamUrl = config.SERVICE_TEAM + '/get';
-    const userUrl = config.SERVICE_TEAM + '/get/user';
     const teamId = req.query.teamId;
-    const users = yield fns.doGet(userUrl);
-    const teams = yield fns.doGet(teamUrl);
+    if (!mazes || !teams || !users) {
+        yield loadRootData();
+    }
     let team = teams[0];
     log.debug(__filename, 'editTeams()', `${teams.length} teams returned.`);
     if (teamId !== undefined) {
@@ -151,16 +161,12 @@ exports.editTeams = (req, res) => __awaiter(this, void 0, void 0, function* () {
 exports.editUsers = (req, res) => __awaiter(this, void 0, void 0, function* () {
     logRequest('editusers', req, true);
     const userId = req.query.userId;
-    const teamUrl = config.SERVICE_TEAM + '/get';
-    const userUrl = config.SERVICE_TEAM + '/get/user';
-    const users = yield fns.doGet(userUrl);
-    const teams = yield fns.doGet(teamUrl);
     let userIdx = 0;
     if (userId !== undefined) {
         if (userId === 'NEW_USER') {
             const newUser = new User_1.User();
             newUser.UserName = 'NEW_USER';
-            users.push(newUser);
+            users.push(JSON.parse(JSON.stringify(newUser)));
             userIdx = users.length - 1;
         }
         else {

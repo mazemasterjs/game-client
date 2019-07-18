@@ -117,7 +117,7 @@ async function loadData() {
           $('#userTeam').html(DATA_TEAM.name);
           if (DBG) console.log('loadData() -> Team Loaded.');
         })
-        .then(() => {
+        .then(async () => {
           if (DBG) console.log('loadData() -> Find Bot: ' + DATA_USER.botId);
           DATA_BOT = DATA_TEAM.bots.find(bot => {
             return bot.id === DATA_USER.botId;
@@ -126,15 +126,15 @@ async function loadData() {
           $('#userBot').html(DATA_BOT.name);
           if (DBG) console.log('loadData() -> Bot Found.', DATA_BOT);
 
-          loadBotVersions(DATA_USER.botId, true);
+          await loadBotVersions(DATA_USER.botId, true);
         })
-        .then(() => {
+        .then(async () => {
           //
           // LOAD ELEVATED USER DATA (if needed)
           //
           if (DATA_USER.role > USER_ROLES.USER) {
             if (DBG) console.log('loadData() -> All Teams.');
-            doAjax(TEAM_URL + '/get').then(teams => {
+            doAjax(TEAM_URL + '/get').then(async teams => {
               let opts = '';
               for (const team of teams) {
                 opts = opts + `<option value="${team.id}"`;
@@ -147,7 +147,7 @@ async function loadData() {
                     botOpts += `<option value="${bot.id}" name="${bot.name}"`;
                     if (bot.id === DATA_USER.botId) {
                       botOpts = botOpts + ' selected="selected"';
-                      loadBotVersions(bot.id, false);
+                      await loadBotVersions(bot.id, false);
                     }
                     botOpts = botOpts + `>${bot.name}</option>\n`;
                   }
@@ -228,21 +228,28 @@ function resetGlobals() {
  * @param {*} autoLoadBot
  * @return {void}
  */
-function loadBotVersions(botId, autoLoadBot = true) {
+async function loadBotVersions(botId, autoLoadBot = true) {
   $('#loadMsgBody').text('... collecting versions for bot ' + botId);
 
   const BOT_CODE_URL = TEAM_URL + '/get/botCode?botId=' + botId;
   if (DBG) console.log('loadBotVersions() -> ', botId, autoLoadBot);
 
-  return $.ajax({
+  return await $.ajax({
     url: BOT_CODE_URL,
     dataType: 'json',
     method: 'GET',
     headers: { Authorization: 'Basic ' + USER_CREDS },
   })
     .then(docs => {
+      docs.reverse();
+      while (docs.length > 25) {
+        const oldVersion = docs.pop();
+        console.log('delete this: ', oldVersion);
+        deleteBotCodeVersion(oldVersion.botId, oldVersion.version);
+      }
+
       const opts = [];
-      for (const doc of docs.reverse()) {
+      for (const doc of docs) {
         opts.push(`<option value="${doc.version}">${doc.version}</option>\n`);
       }
       $('#selBotVersion').html(opts.join());

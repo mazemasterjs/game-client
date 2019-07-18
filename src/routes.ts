@@ -16,33 +16,43 @@ import { IUser } from '@mazemasterjs/shared-library/Interfaces/IUser';
 const log = Logger.getInstance();
 const config = Config.getInstance();
 
+// some url consts
+const scoreUrl = config.SERVICE_SCORE + '/get';
+const teamUrl = config.SERVICE_TEAM + '/get';
+const userUrl = config.SERVICE_TEAM + '/get/user';
+const mazeUrl = config.SERVICE_MAZE + '/get';
+
 // tslint:disable-next-line: no-string-literal
 axios.defaults.headers.common['Authorization'] = 'Basic ' + config.PRIMARY_SERVICE_ACCOUNT;
 
-export const scoreboard = async (req: Request, res: Response) => {
-  logRequest('scoreboard', req, true);
+let users: Array<IUser>;
+let teams: Array<any>;
+let mazes: Array<IMazeStub>;
 
-  return res.status(200).send('Temporarily Disbled');
-
-  const filter = req.query.filter;
-  const teamGames = req.query.teamGames;
-
-  const scoreUrl = config.SERVICE_SCORE + '/get';
-  const teamUrl = config.SERVICE_TEAM + '/get';
-  const userUrl = config.SERVICE_TEAM + '/get/user';
-  const mazeUrl = config.SERVICE_MAZE + '/get';
-
+async function loadRootData() {
+  log.warn(__filename, 'loadRootData()', 'LOADING ROOT DATA');
   log.debug(__filename, 'scoreboard(req, res)', 'Getting Users');
-  const users: Array<IUser> = await fns.doGet(userUrl);
+  users = await fns.doGet(userUrl);
   log.debug(__filename, 'scoreboard(req, res)', `${users.length} user documents retrieved.`);
 
   log.debug(__filename, 'scoreboard(req, res)', 'Getting Teams');
-  let teams: Array<any> = await fns.doGet(teamUrl);
+  teams = await fns.doGet(teamUrl);
   log.debug(__filename, 'scoreboard(req, res)', `${teams.length} team documents retrieved.`);
 
   log.debug(__filename, 'scoreboard(req, res)', 'Getting Mazes');
-  const mazes: Array<IMazeStub> = await fns.doGet(mazeUrl);
+  mazes = await fns.doGet(mazeUrl);
   log.debug(__filename, 'scoreboard(req, res)', `${mazes.length} maze stub documents retrieved.`);
+}
+
+export const scoreboard = async (req: Request, res: Response) => {
+  if (!mazes || !teams || !users) {
+    await loadRootData();
+  }
+
+  logRequest('scoreboard', req, true);
+
+  const filter = req.query.filter;
+  const teamGames = req.query.teamGames;
 
   let teamQuery = '';
   if (filter === 'campers') {
@@ -122,12 +132,12 @@ export const quickHash = async (req: Request, res: Response) => {
 
 export const editTeams = async (req: Request, res: Response) => {
   logRequest('editTeams', req, true);
-  const teamUrl = config.SERVICE_TEAM + '/get';
-  const userUrl = config.SERVICE_TEAM + '/get/user';
   const teamId = req.query.teamId;
 
-  const users = await fns.doGet(userUrl);
-  const teams = await fns.doGet(teamUrl);
+  if (!mazes || !teams || !users) {
+    await loadRootData();
+  }
+
   let team = teams[0];
 
   log.debug(__filename, 'editTeams()', `${teams.length} teams returned.`);
@@ -157,18 +167,13 @@ export const editTeams = async (req: Request, res: Response) => {
 export const editUsers = async (req: Request, res: Response) => {
   logRequest('editusers', req, true);
   const userId = req.query.userId;
-  const teamUrl = config.SERVICE_TEAM + '/get';
-  const userUrl = config.SERVICE_TEAM + '/get/user';
-
-  const users = await fns.doGet(userUrl);
-  const teams = await fns.doGet(teamUrl);
   let userIdx = 0;
 
   if (userId !== undefined) {
     if (userId === 'NEW_USER') {
       const newUser = new User();
       newUser.UserName = 'NEW_USER';
-      users.push(newUser);
+      users.push(JSON.parse(JSON.stringify(newUser)));
       userIdx = users.length - 1;
     } else {
       userIdx = users.findIndex((user: { id: any }) => {
