@@ -21,6 +21,9 @@ axios.defaults.headers.common['Authorization'] = 'Basic ' + config.PRIMARY_SERVI
 
 export const scoreboard = async (req: Request, res: Response) => {
   logRequest('scoreboard', req, true);
+
+  return res.status(200).send('Scoreboard Temporarily Disabled');
+
   const filter = req.query.filter;
   const teamGames = req.query.teamGames;
 
