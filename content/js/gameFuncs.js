@@ -3,9 +3,10 @@
 /* eslint-disable no-unused-vars */
 const MAZE_URL = 'http://mazemasterjs.com/api/maze';
 // const GAME_URL = 'http://game-server-maze-master-js.b9ad.pro-us-east-1.openshiftapps.com/game';
-const GAME_URL = 'http://mazemasterjs.com/game';
-// const GAME_URL = 'http://localhost:8080/game';
+//const GAME_URL = 'http://mazemasterjs.com/game';
+const GAME_URL = 'http://localhost:8081/game';
 const TEAM_URL = 'http://mazemasterjs.com/api/team';
+const TROPHY_URL = 'http://mazemasterjs.com/api/trophy';
 
 // global configuration vars
 let botCallBackTimer = -1;
@@ -35,6 +36,7 @@ const USER_CREDS = Cookies.get('userCreds');
 
 // global data storage vars
 let DATA_MAZES = [];
+let DATA_TROPHIES = [];
 let DATA_TEAM = {};
 let DATA_USER = {};
 let DATA_BOT = {};
@@ -86,6 +88,17 @@ async function loadData() {
     DATA_MAZES = mazes;
     if (DBG) console.log(`loadData(): ${DATA_MAZES.length} maze stubs loaded.`);
   });
+
+  //
+  // LOAD TROPHIES
+  //
+  if (DBG) console.log('loadData() -> Load trophy data...');
+  $('#loadMsgBody').text('... gathering trophy data');
+  DATA_TROPHIES = await doAjax(TROPHY_URL + '/get').then(trophies => {
+    if (DBG) console.log('loadData() -> ' + trophies.length + ' trophies retrieved.');
+    return trophies;
+  });
+  $('#loadMsgBody').text('... trophies ready to be inflicted');
 
   //
   // LOAD USER-SPECIFIC DATA
@@ -204,17 +217,9 @@ function resetGlobals() {
   BOT_RAM = {};
   botCallback = null;
   totalMoves = 0;
-  totalScore = 1000;
+  totalScore = 0;
   clearInterval(botCallBackTimer);
   setBotButtonStates(true);
-}
-
-/**
- * Loads maze data into local controls
- * @return {Promise}
- */
-function loadMazes() {
-  return doAjax(`${MAZE_URL}/get`);
 }
 
 /**
@@ -496,7 +501,7 @@ function versionBotCode(botId, code) {
         data: {
           botId: botId,
           version: '0.0.1',
-          code: startBotCode,
+          code: starterBotCode,
         },
       })
         .then(() => {
@@ -588,8 +593,6 @@ async function startGame(autoPlay = false) {
         $('#textLog').empty();
         $('#actionLog').empty();
         resetGlobals();
-        totalScore = totalScore + gameData.totalScore;
-        totalMoves = gameData.game.score.moveCount;
       } else {
         BOT_RAM = {};
         totalScore = totalScore + gameData.totalScore;
@@ -866,27 +869,54 @@ async function executeAction(action) {
     });
 }
 
+function logTrophies(trophies) {
+  trophies.forEach(trophy => {
+    let tData = DATA_TROPHIES.find(tItem => {
+      return tItem.id == trophy.id;
+    });
+    // {id: "CHEDDAR_DINNER", name: "Winner, Winner, Cheddar Dinner", description: "You escaped the maze!", bonusAward: 500}
+    let msgBody = `You've been awarded the <b>${tData.name}</b> trophy!&nbsp;`;
+    if (tData.bonusAward > 0) {
+      msgBody = msgBody + `<br /><br />We hope you enjoy this award of <b>${tData.bonusAward} BONUS POINTS</b>! Keep up the great work!"`;
+    } else if (tData.bonusAward == 0) {
+      msgBody = msgBody + `<br /><br />It's <b>not worth any bonus points</b>, but wouldn't look terrible on your shelf. Or in the trash. Whatever.`;
+    } else {
+      msgBody =
+        msgBody +
+        `<br /><br />We gleefully regret to inform you that you've been 'awarded' <b>NEGATIVE ${Math.abs(
+          tData.bonusAward,
+        )} BONUS POINTS</b>. Let's try to not do <b>that</b> again, shall we?`;
+    }
+    msgBody =
+      msgBody +
+      `<br /><br />There's a message on a little, metal plate at the trophy's base. It reads:&nbsp;&nbsp;<p class="trophyMessage">"${tData.description}"</p>`;
+
+    logMessage('trophy', '<img src="../images/trophy-white.svg">' + tData.name + '<img src="../images/trophy-white.svg">', msgBody);
+  });
+}
+
 /**
  * Renders the given action result
  *
  * @param {*} result
  */
 async function renderAction(result) {
-  if (DBG) {
-    console.log('renderAction', result);
-  }
-  const action = result.action;
-  const engram = action.engram;
+  if (DBG) console.log('renderAction', result);
 
+  const action = result.action;
   const nData = reformatData(JSON.parse(JSON.stringify(result)));
 
-  let logMsg = '<div class="actionBody">';
+  if (action.trophies.length > 0) {
+    logTrophies(action.trophies);
+  }
 
-  logMsg += `Command: <b>${getObjValName(COMMANDS, action.command)}</b>&nbsp;&nbsp[&nbsp;${action.command}&nbsp;]<br>`;
-  logMsg += `Direction: <b>${getObjValName(DIRS, action.direction)}</b>&nbsp;&nbsp[&nbsp;${action.direction}&nbsp;]<br>`;
+  let logMsg = '<div class="actionBody">';
+  logMsg += `Last Command: <b>${getObjValName(COMMANDS, action.command)}</b>&nbsp;&nbsp[&nbsp;${action.command}&nbsp;]<br>`;
+  logMsg += `Last Direction: <b>${getObjValName(DIRS, action.direction)}</b>&nbsp;&nbsp[&nbsp;${action.direction}&nbsp;]<br>`;
   if (action.message !== '') logMsg += `Message: <b>${action.message}</b><br>`;
   logMsg += `Player State(s): ${getSelectedValueNames(PLAYER_STATES, nData.player.state)}<br>`;
   logMsg += `Player Facing: <b>${getObjValName(DIRS, nData.player.facing)}</b>&nbsp;&nbsp[&nbsp;${nData.player.facing}&nbsp;]<br>`;
+  logMsg += `Player Health: <b>${nData.player.health}</b><br>`;
 
   // add outcomes to the log
   if (action.outcomes.length > 1) {
@@ -902,7 +932,7 @@ async function renderAction(result) {
 
   // log the local "here" engram
   logMsg += `<div id="${actId}_HERE" class="engramContainer" onclick="toggleEngramContent('${actId}_HERE');">`;
-  logMsg += `  <h5><span id="${actId}_HERE_icon" class="ui-icon ui-icon-plus"></span>data.<b>room</b></h5>`;
+  logMsg += `  <h5><span id="${actId}_HERE_icon" class="ui-icon ui-icon-plus"></span>GameData.<b>room</b></h5>`;
   logMsg += `  <p class='engramData' style="display:none"><b>.exitNorth=</b>${jsonToStr(nData.room.exitNorth)}</p>`;
   logMsg += `  <p class='engramData' style="display:none"><b>.exitSouth=</b>${jsonToStr(nData.room.exitSouth)}</p>`;
   logMsg += `  <p class='engramData' style="display:none"><b>.exitEast=</b>${jsonToStr(nData.room.exitEast)}</p>`;
@@ -911,7 +941,7 @@ async function renderAction(result) {
   logMsg += `</div>`;
 
   logMsg += `<div id="${actId}_SEE" class="engramContainer" onclick="toggleEngramContent('${actId}_SEE');">`;
-  logMsg += `  <h5><span id="${actId}_SEE_icon" class="ui-icon ui-icon-plus"></span>data.<b>see</b></h5>`;
+  logMsg += `  <h5><span id="${actId}_SEE_icon" class="ui-icon ui-icon-plus"></span>GameData.<b>see</b></h5>`;
   if (undefined != nData.see) {
     logMsg += `  <p class='engramData' style="display:none"><b>.north=</b>${jsonToStr(nData.see.north)}</p>`;
     logMsg += `  <p class='engramData' style="display:none"><b>.east=</b>${jsonToStr(nData.see.east)}</p>`;
@@ -921,7 +951,7 @@ async function renderAction(result) {
   logMsg += `</div>`;
 
   logMsg += `<div id="${actId}_TOUCH" class="engramContainer" onclick="toggleEngramContent('${actId}_TOUCH');">`;
-  logMsg += `  <h5><span id="${actId}_TOUCH_icon" class="ui-icon ui-icon-plus"></span>data.<b>touch</b></h5>`;
+  logMsg += `  <h5><span id="${actId}_TOUCH_icon" class="ui-icon ui-icon-plus"></span>GameData.<b>touch</b></h5>`;
   if (undefined != nData.touch) {
     logMsg += `  <p class='engramData' style="display:none"><b>.north=</b>${jsonToStr(nData.touch.north)}</p>`;
     logMsg += `  <p class='engramData' style="display:none"><b>.east=</b>${jsonToStr(nData.touch.east)}</p>`;
@@ -931,7 +961,7 @@ async function renderAction(result) {
   logMsg += `</div>`;
 
   logMsg += `<div id="${actId}_HEAR" class="engramContainer" onclick="toggleEngramContent('${actId}_HEAR');">`;
-  logMsg += `  <h5><span id="${actId}_HEAR_icon" class="ui-icon ui-icon-plus"></span>data.<b>hear</b></h5>`;
+  logMsg += `  <h5><span id="${actId}_HEAR_icon" class="ui-icon ui-icon-plus"></span>GameData.<b>hear</b></h5>`;
   if (undefined != nData.hear) {
     logMsg += `  <p class='engramData' style="display:none"><b>.north=</b>${jsonToStr(nData.hear.north)}</p>`;
     logMsg += `  <p class='engramData' style="display:none"><b>.east=</b>${jsonToStr(nData.hear.east)}</p>`;
@@ -941,7 +971,7 @@ async function renderAction(result) {
   logMsg += `</div>`;
 
   logMsg += `<div id="${actId}_SMELL" class="engramContainer" onclick="toggleEngramContent('${actId}_SMELL');">`;
-  logMsg += `  <h5><span id="${actId}_SMELL_icon" class="ui-icon ui-icon-plus"></span>data.<b>smell</b></h5>`;
+  logMsg += `  <h5><span id="${actId}_SMELL_icon" class="ui-icon ui-icon-plus"></span>GameData.<b>smell</b></h5>`;
   if (undefined != nData.smell) {
     logMsg += `  <p class='engramData' style="display:none"><b>.north=</b>${jsonToStr(nData.smell.north)}</p>`;
     logMsg += `  <p class='engramData' style="display:none"><b>.east=</b>${jsonToStr(nData.smell.east)}</p>`;
@@ -951,7 +981,7 @@ async function renderAction(result) {
   logMsg += `</div>`;
 
   logMsg += `<div id="${actId}_TASTE" class="engramContainer" onclick="toggleEngramContent('${actId}_TASTE');">`;
-  logMsg += `  <h5><span id="${actId}_TASTE_icon" class="ui-icon ui-icon-plus"></span>data.<b>taste</b></h5>`;
+  logMsg += `  <h5><span id="${actId}_TASTE_icon" class="ui-icon ui-icon-plus"></span>GameData.<b>taste</b></h5>`;
   if (undefined != nData.taste) {
     logMsg += `  <p class='engramData' style="display:none"><b>.north=</b>${jsonToStr(nData.taste.north)}</p>`;
     logMsg += `  <p class='engramData' style="display:none"><b>.east=</b>${jsonToStr(nData.taste.east)}</p>`;
@@ -993,6 +1023,7 @@ async function renderAction(result) {
         win = true;
         msg += ' - You won!';
         logMessage('win', msg, getEndGameImg('win'));
+
         break;
       case GAME_RESULTS.WIN_FLAWLESS:
         win = true;
@@ -1486,6 +1517,11 @@ function reformatData(data) {
   // map player data
   nData.player.facing = data.playerFacing;
   nData.player.state = data.playerState;
+  nData.player.isSitting = !!(data.playerState & PLAYER_STATES.SITTING);
+  nData.player.isLyingDown = !!(data.playerState & PLAYER_STATES.LYING);
+  nData.player.isStunned = !!(data.playerState & PLAYER_STATES.STUNNED);
+  nData.player.isSlowed = !!(data.playerState & PLAYER_STATES.SLOWED);
+  nData.player.isPoisoned = !!(data.playerState & PLAYER_STATES.POISONED);
   nData.player.health = data.action.playerLife;
 
   // the here engrams

@@ -86,6 +86,11 @@ declarations.push('declare function logMessage(LOG_TYPE:LOG_TYPES, msgHeader:str
 declarations.push('declare interface IPlayerData {');
 declarations.push('  facing: number;');
 declarations.push('  state: number;');
+declarations.push('  isSitting: boolean;');
+declarations.push('  isLyingDown: boolean;');
+declarations.push('  isStunned: boolean;');
+declarations.push('  isSlowed: boolean;');
+declarations.push('  isPoisoned: boolean;');
 declarations.push('  health: number;');
 declarations.push('}');
 
@@ -164,7 +169,7 @@ declarations.push('  room: IRoomData;');
 declarations.push('  see: ISeeData;');
 declarations.push('  hear: IHearData;');
 declarations.push('  smell: ISmellData;');
-declarations.push('  feel: IFeelData;');
+declarations.push('  touch: IFeelData;');
 declarations.push('  taste: ITasteData;');
 declarations.push('}');
 

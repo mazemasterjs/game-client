@@ -26,11 +26,9 @@
 
       <div></div>
       <div class='label'>Bot:</div>
-      <% console.log(teams);%>
       <% let selTeamIdx = teams.findIndex((team) => { return team.id == user.teamId; }); %>
       <% if (selTeamIdx == -1) { selTeamIdx = 0; } %>
-      <% console.log('sti: ', selTeamIdx); %>
-      <div><%- include('bot-select', { bots: teams[selTeamIdx].bots, selBotId: {id: user.botId} }) -%></div>
+      <div><%- include('bot-select', { bots: teams[selTeamIdx].bots, selBotId: user.botId }) -%></div>
       <div></div>
 
       <div></div>

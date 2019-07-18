@@ -15,6 +15,14 @@
   <img id='logoPreview' src="<%= team.logo %>" class="teamLogo">
 </div>
 
+<div id='quickNav'>
+  <p><a href="/bot-editor.html">BOT EDITOR</a></p>
+  <p><a href="/scoreboard">SCOREBOARD</a></p>
+  <p><a href="team-editor">TEAM EDITOR</a></p>
+  <p><a href="user-editor">USER EDITOR</a></p>
+  <p><a href="#" onclick="doLogout();">LOG OUT</a></p>
+</div>
+
 <script>
   const USER_CREDS = Cookies.get('userCreds');
   let dirtyData = false;
@@ -77,6 +85,13 @@
       my: 'right center',
       at: 'right-5 top',
       of: '#teamDetails',
+      collision: 'fit none'
+    });
+
+    $('#quickNav').position({
+      my: 'left top',
+      at: 'left top',
+      of: '#pageContainer',
       collision: 'fit none'
     });
   }

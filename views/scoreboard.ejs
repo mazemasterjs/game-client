@@ -1,0 +1,64 @@
+<%- include('header'); -%>
+<%- include('scoreboard-subhead'); -%>
+<div id="pageContainer">
+  <h1 id="pageTitle">TOP SCORES</h1>
+
+  <div id="scoreList">
+    <div class='heading'>RANK</div>
+    <div class='heading'>TEAM</div>
+    <div class='heading'>CODER</div>
+    <div class='heading'>MAZE</div>
+    <div class='heading'>CHALLENGE</div>
+    <div class='heading'>DATE</div>
+    <div class='heading'>SCORE</div>
+    <div class='heading'>TROPHIES</div>
+
+    <% let rank = 0; %>
+    <% topScores.forEach(function(ts) { %>
+        <% rank = rank + 1; %>
+        <% const date = new Date(ts.score.lastUpdated); %>
+        <div class='numVal'><%= rank %></div>
+        <div class='textVal'><%= ts.teamName %></div>
+        <% if (ts.bot !== undefined ) { %> 
+          <div class='textVal'><%= ts.bot.coder %> <span class='botName'>(<%= ts.bot.name %>)</span></div>
+        <% } else { %>
+          <div class='textVal'><span class='teamGame'>TEAM GAME</span></div>
+        <% } %>
+        <div class='textVal'><%= ts.mazeName %></div>
+        <div class='numVal'><%= ts.mazeLevel %></div>
+        <div class='dateVal'><%= date.toLocaleDateString("en-US", {timeZone: "America/New_York"}) %> at <%= date.toLocaleTimeString("en-US", {timeZone: "America/New_York"}) %></div>
+        <div class='numVal'><%= ts.score.totalScore %></div>
+        <div class='numVal'><%= ts.score.trophyStubs.length %></div>
+    <% }); %>
+  </div>
+
+  <div id="scoreboardControls"> 
+    [ <a href="scoreboard">ALL SCORES</a> ]&nbsp;&nbsp;[ <a href="scoreboard?filter=campers">CAMPERS ONLY</a> ]
+  </div>
+
+  <%# <div class='logoContainer'><img id="logo" src="/images/mazemaster-logo.png" /></div> %>
+
+</div>
+
+<script>
+  $().ready(async () => {
+    doResize();
+
+    setTimeout(() => {
+      location.reload();
+    }, 60000);
+  });
+
+  function doResize() { 
+
+    $('#scoreboardControls').position({
+      my: 'left top',
+      at: 'left top',
+      of: '#pageContainer',
+      collision: 'fit none'
+    });
+
+  }
+</script>
+
+<%- include('footer'); -%>

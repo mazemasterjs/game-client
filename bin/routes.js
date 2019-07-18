@@ -32,6 +32,59 @@ const log = logger_1.Logger.getInstance();
 const config = Config_1.Config.getInstance();
 // tslint:disable-next-line: no-string-literal
 axios_1.default.defaults.headers.common['Authorization'] = 'Basic ' + config.PRIMARY_SERVICE_ACCOUNT;
+exports.scoreboard = (req, res) => __awaiter(this, void 0, void 0, function* () {
+    logRequest('scoreboard', req, true);
+    const filter = req.query.filter;
+    const teamGames = req.query.teamGames;
+    const scoreUrl = config.SERVICE_SCORE + '/get';
+    const teamUrl = config.SERVICE_TEAM + '/get';
+    const userUrl = config.SERVICE_TEAM + '/get/user';
+    const mazeUrl = config.SERVICE_MAZE + '/get';
+    log.debug(__filename, 'scoreboard(req, res)', 'Getting Users');
+    const users = yield fns.doGet(userUrl);
+    log.debug(__filename, 'scoreboard(req, res)', `${users.length} user documents retrieved.`);
+    log.debug(__filename, 'scoreboard(req, res)', 'Getting Teams');
+    let teams = yield fns.doGet(teamUrl);
+    log.debug(__filename, 'scoreboard(req, res)', `${teams.length} team documents retrieved.`);
+    log.debug(__filename, 'scoreboard(req, res)', 'Getting Mazes');
+    const mazes = yield fns.doGet(mazeUrl);
+    log.debug(__filename, 'scoreboard(req, res)', `${mazes.length} maze stub documents retrieved.`);
+    let teamQuery = '';
+    if (filter === 'campers') {
+        const camperTeams = new Array();
+        teams.forEach(t => {
+            if (t.name !== 'The Dev Team' && t.name !== 'Intern Invasion' && t.name !== 'Guest Players') {
+                camperTeams.push(t);
+                teamQuery = teamQuery + '&teamIds[]=' + t.id;
+            }
+        });
+        teams = camperTeams;
+    }
+    const topScores = [];
+    for (const maze of mazes) {
+        if (maze.challenge > 0 && maze.name.indexOf('DEBUG') === -1) {
+            yield fns.doGet(scoreUrl + '/topScores?mazeId=' + maze.id + teamQuery + (teamGames ? '&teamGames=true' : '')).then(scores => {
+                scores.forEach((score) => {
+                    const team = teams.find(t => {
+                        return t.id === score.teamId;
+                    });
+                    const bot = team.bots.find((b) => {
+                        return b.id === score.botId;
+                    });
+                    topScores.push({ mazeName: maze.name, mazeLevel: maze.challenge, score, teamName: team.name, bot });
+                });
+            });
+        }
+    }
+    topScores.sort((ts1, ts2) => {
+        return (ts2.mazeLevel - ts1.mazeLevel ||
+            ts2.mazeName.localeCompare(ts1.mazeName) ||
+            ts2.score.totalScore - ts1.score.totalScore ||
+            ts2.score.lastUpdated - ts1.score.lastUpdated);
+    });
+    // render the scoreboard
+    res.render('scoreboard.ejs', { topScores });
+});
 /**
  * Serve up the requested file
  *
@@ -56,7 +109,7 @@ exports.serveFile = (req, res) => {
     }
 };
 exports.quickHash = (req, res) => __awaiter(this, void 0, void 0, function* () {
-    logRequest('editTeams', req, true);
+    logRequest('quickHash', req, true);
     const textToHash = req.query.textToHash;
     if (textToHash === undefined) {
         return res.status(400).json({ status: 400, message: 'Query parameter "textToHash" was not found.' });

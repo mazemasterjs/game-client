@@ -2,8 +2,9 @@
 <%- include('user-editor-subhead'); -%>
 <div id="pageContainer">
   <span id='allTeams' hidden><%= JSON.stringify(teams) %></span>
+  <span id='userData' hidden><%= JSON.stringify(user) %></span>
   <span id='userPw' hidden><%= user.pwHash %></span>
-  <h1 id="pageTitle">User Editor<br><span style="font-size: 1rem;color:#ff0000;"> (incomplete)</span>  </h1>
+  <h1 id="pageTitle">User Editor</h1>
 
   <%- include('user-display', {user, curUser: user, teams}); -%>
 
@@ -15,9 +16,19 @@
   </div>
 </div>
 
+<div id='quickNav'>
+  <p><a href="/bot-editor.html">BOT EDITOR</a></p>
+  <p><a href="/scoreboard">SCOREBOARD</a></p>
+  <p><a href="team-editor">TEAM EDITOR</a></p>
+  <p><a href="user-editor">USER EDITOR</a></p>
+  <p><a href="#" onclick="doLogout();">LOG OUT</a></p>
+</div>
+
 <script>
   const USER_CREDS = Cookies.get('userCreds');
   const teams = JSON.parse($('#allTeams').text());
+  const user = JSON.parse($('#userData').text());
+
   let dirtyData = false;
 
   $().ready(async () => {
@@ -43,15 +54,20 @@
     });
 
     $('#selTeam').change(() => {
-      console.log('SELTEAM CHANGE')
       const selTeam = teams.find((t) => {
         return t.id === $('#selTeam :selected').val();
       })
 
       $('#selBot').empty();
       let opts = '';
+      
+      console.log('User Parsed:', user);
       selTeam.bots.forEach(bot => {
-        opts = opts + `<option value="${bot.id}">${bot.name}</option>`;
+        if (user !== undefined && user.botId == bot.id) {
+          opts = opts + `<option value="${bot.id}" selected>${bot.name}</option>`;
+        } else {
+          opts = opts + `<option value="${bot.id}">${bot.name}</option>`;
+        }
       });
       $('#selBot').html(opts);
 
@@ -80,6 +96,12 @@
       collision: 'fit none'
     });
 
+    $('#quickNav').position({
+      my: 'left top',
+      at: 'left top',
+      of: '#pageContainer',
+      collision: 'fit none'
+    });
   }
 
   async function saveUser() {
@@ -153,7 +175,7 @@
       data: userData,
     }).then(() => {
       dirtyData = false;
-      // window.location = 'user-editor?userId=' + userData.id;
+      window.location = 'user-editor?userId=' + userData.id;
     }).catch((saveErr) => {
       alert('SAVE FAILED - ' + saveErr.responseText);
       console.error('Save Error -> ', userUrl, userData, saveErr);
@@ -163,4 +185,4 @@
 
 </script>
 
-
+<%- include('footer'); -%>

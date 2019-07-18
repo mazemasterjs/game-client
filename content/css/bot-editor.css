@@ -458,6 +458,37 @@ a:hover {
   color: rgb(255, 200, 132);
 }
 
+.trophyMsgHdr {
+  color: black;
+  font-size: 1.25rem;
+  font-weight: bold !important;
+  background-image: linear-gradient(to bottom, gold, darkorange);
+  border-top: solid 1px darkorange;
+  border-bottom: solid 1px darkorange;
+}
+.trophyMsgHdr img {
+  margin-right: .5rem;
+  margin: .2rem .5rem 0rem .5rem;
+  height: 1.20rem;
+}
+.trophyMsgBdy {
+  color: silver;
+  text-shadow: black 2px 2px 2px;
+}
+.trophyMsgBdy b {
+  color: whitesmoke;
+  text-shadow: black 2px 2px 2px;
+}
+.trophyMessage {
+  width: 75%;
+  text-align: center;
+  margin: auto;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  font-style: italic;
+  color: gold;
+}
+
 .errMsgHdr {
   color: red;
   border-top: solid 1px red;

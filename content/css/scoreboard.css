@@ -1,0 +1,86 @@
+body {
+  background-color: rgb(0, 0, 0);
+  color: antiquewhite;
+  font-family: 'Quicksand', sans-serif;
+  font-size: 16px;
+}
+
+#scoreboardControls {
+  color: lightslategray;
+  font-size: 0.75rem;
+  width: fit-content;
+}
+
+.logoContainer {
+  width: 100%;
+  text-align: center;
+}
+.heading {
+  font-weight: bold;
+  color: darkorange;
+  font-size: 1.5rem;
+  text-align: center;
+  border-bottom: solid 1px rgba(255, 140, 0, 0.37);
+  margin-bottom: 0.25rem;
+}
+
+.numVal {
+  font-weight: bold;
+  color: whitesmoke;
+  font-size: 1.25rem;
+  text-align: center;
+}
+
+.textVal {
+  color: antiquewhite;
+  font-size: 1.25rem;
+  text-align: center;
+}
+
+.teamGame {
+  font-weight: bold;
+  color: whitesmoke;
+}
+
+.dateVal {
+  color: antiquewhite;
+  font-size: 1.25rem;
+  text-align: center;
+}
+
+.botName {
+  color: lightblue;
+  font-size: 1rem;
+  text-align: center;
+}
+
+a {
+  color: lightslategray;
+  font-size: 0.75rem;
+  text-decoration: none;
+}
+
+a:hover {
+  font-size: 0.75rem;
+  color: darkorange;
+}
+
+/* rank score maze challenge team coder date trophies */
+#pageContainer {
+  width: 100%;
+  min-width: 790px;
+  align-content: left;
+  justify-content: left;
+  margin: 0.5rem;
+}
+
+#pageTitle {
+  text-align: center;
+  color: whitesmoke;
+  font-size: 2.5rem;
+}
+
+#scoreList {
+  display: grid;
+  grid-template-columns: auto auto auto auto auto auto auto auto;
+}
