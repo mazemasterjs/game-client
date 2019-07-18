@@ -34,6 +34,7 @@ const config = Config_1.Config.getInstance();
 axios_1.default.defaults.headers.common['Authorization'] = 'Basic ' + config.PRIMARY_SERVICE_ACCOUNT;
 exports.scoreboard = (req, res) => __awaiter(this, void 0, void 0, function* () {
     logRequest('scoreboard', req, true);
+    return res.status(200).send('Temporarily Disbled');
     const filter = req.query.filter;
     const teamGames = req.query.teamGames;
     const scoreUrl = config.SERVICE_SCORE + '/get';
