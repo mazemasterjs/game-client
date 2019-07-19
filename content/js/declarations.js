@@ -42,17 +42,14 @@ declarations.push('};');
 declarations.push('declare const COMMANDS = {');
 declarations.push('  NONE: 0,');
 declarations.push('  FACE: 1,');
-declarations.push('  LISTEN: 2,');
-declarations.push('  LOOK: 3,');
 declarations.push('  SIT: 4,');
-declarations.push('  SNIFF: 5,');
 declarations.push('  STAND: 6,');
 declarations.push('  TURN: 7,');
 declarations.push('  MOVE: 8,');
 declarations.push('  JUMP: 9,');
 declarations.push('  WAIT: 10,');
 declarations.push('  WRITE: 11,');
-declarations.push('  QUIT: 12');
+declarations.push('  SNEAK: 13');
 declarations.push('};');
 
 // add a couple of aliases for common enums
@@ -75,13 +72,6 @@ declarations.push(' * @param {string} msgHeader - The text of the header to be d
 declarations.push(' * @param {string?} msgBody - Optional - The text of the body to be displayed in the log entry.');
 declarations.push(' */');
 declarations.push('declare function logMessage(LOG_TYPE:LOG_TYPES, msgHeader:string, msgBody?: string): void;');
-
-// declarations.push('/**');
-// declarations.push(' * IPlayerData');
-// declarations.push(' * @param {DIRECTIONS} facing - The direction the player is currently facing - see DIRECTIONS for potential values.');
-// declarations.push(' * @param {PLAYER_STATES} state - The current state of the player - see PLAYER_STATES for potential values.');
-// declarations.push(" * @param {number} health - The player's current health (max 100).");
-// declarations.push(' */');
 
 declarations.push('declare interface IPlayerData {');
 declarations.push('  facing: number;');
