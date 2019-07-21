@@ -30,7 +30,7 @@ function doGet(url) {
         return yield axios_1.default
             .get(url)
             .then(res => {
-            log.debug(__filename, method, genResMsg(url, res));
+            log.trace(__filename, method, genResMsg(url, res));
             return Promise.resolve(res.data);
         })
             .catch(axiosErr => {

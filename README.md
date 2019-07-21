@@ -13,6 +13,17 @@ The MazeMasterJS Game Client
 ## Change Notes
 
 ### v1.1.2
+
+- BOT EDITOR
+  - Added modal loading dialog when bot versions/bot code are loading (prevents people switching versions or running bots before they're loaded)
+  - Bot version loading / parsing is now much, much faster
+- SCOREBOARD
+  - Fixed bug with bot identification that was preventing scoreboard from loading if team scores were returned in the top-3 list for each maze
+  - Switching to camper-only view no longer makes it impossible to switch back to all-players view.
+  - Cleaned up logging / error handling in general
+
+### v1.1.2
+
 - Trophies now render in action log
 - Since playerState is a bitwise value, players may run into problems with the standard GameData.player.state == PLAYER_STATES.SITTING check once they start to encounter traps that add additional states. To prevent the need to have to teach bitwise comparisons (which can be confusing), the following booleans have been added to GameData.player:
   - isSitting
