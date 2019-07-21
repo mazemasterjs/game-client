@@ -157,9 +157,8 @@ export const editTeams = async (req: Request, res: Response) => {
   logRequest('editTeams', req, true);
   const teamId = req.query.teamId;
 
-  if (!mazes || !teams || !users) {
-    await loadRootData();
-  }
+  // reload root data when edit teams or users
+  await loadRootData();
 
   let team = teams[0];
 
@@ -188,8 +187,12 @@ export const editTeams = async (req: Request, res: Response) => {
 };
 
 export const editUsers = async (req: Request, res: Response) => {
-  logRequest('editusers', req, true);
+  logRequest('editUsers', req, true);
   const userId = req.query.userId;
+
+  // reload root data when edit teams or users
+  await loadRootData();
+
   let userIdx = 0;
 
   if (userId !== undefined) {
