@@ -110,6 +110,40 @@ async function loadData() {
       DATA_USER = user[0];
       if (DBG) console.log('loadData() -> User Loaded.');
     })
+    .then(async () => {
+      //
+      // LOAD ELEVATED USER DATA (if needed)
+      //
+      if (DATA_USER.role > USER_ROLES.USER) {
+        if (DBG) console.log('loadData() -> All Teams.');
+        doAjax(TEAM_URL + '/get').then(async teams => {
+          let opts = '';
+          for (const team of teams) {
+            opts = opts + `<option value="${team.id}"`;
+            if (team.id === DATA_USER.teamId) {
+              opts = opts + ' selected="selected"';
+
+              // load bots for selected team
+              let botOpts = '';
+              for (const bot of team.bots) {
+                botOpts += `<option value="${bot.id}" name="${bot.name}"`;
+                if (bot.id === DATA_USER.botId) {
+                  botOpts = botOpts + ' selected="selected"';
+                  await loadBotVersions(bot.id, false);
+                }
+                botOpts = botOpts + `>${bot.name}</option>\n`;
+              }
+              $('#selBot').html(botOpts);
+            }
+            opts = opts + `>${team.name}</option>\n`;
+          }
+          $('#selTeam').html(opts);
+        });
+
+        // $('.adminControl').css('visibility', 'visible');
+        $('#adminSelects').css('visibility', 'visible');
+      }
+    })
     .then(() => {
       if (DBG) console.log('loadData() -> Load Team: ' + DATA_USER.teamId);
       doAjax(TEAM_URL + '/get?id=' + DATA_USER.teamId)
@@ -128,40 +162,6 @@ async function loadData() {
           if (DBG) console.log('loadData() -> Bot Found.', DATA_BOT);
 
           await loadBotVersions(DATA_USER.botId, true);
-        })
-        .then(async () => {
-          //
-          // LOAD ELEVATED USER DATA (if needed)
-          //
-          if (DATA_USER.role > USER_ROLES.USER) {
-            if (DBG) console.log('loadData() -> All Teams.');
-            doAjax(TEAM_URL + '/get').then(async teams => {
-              let opts = '';
-              for (const team of teams) {
-                opts = opts + `<option value="${team.id}"`;
-                if (team.id === DATA_USER.teamId) {
-                  opts = opts + ' selected="selected"';
-
-                  // load bots for selected team
-                  let botOpts = '';
-                  for (const bot of team.bots) {
-                    botOpts += `<option value="${bot.id}" name="${bot.name}"`;
-                    if (bot.id === DATA_USER.botId) {
-                      botOpts = botOpts + ' selected="selected"';
-                      await loadBotVersions(bot.id, false);
-                    }
-                    botOpts = botOpts + `>${bot.name}</option>\n`;
-                  }
-                  $('#selBot').html(botOpts);
-                }
-                opts = opts + `>${team.name}</option>\n`;
-              }
-              $('#selTeam').html(opts);
-            });
-
-            // $('.adminControl').css('visibility', 'visible');
-            $('#adminSelects').css('visibility', 'visible');
-          }
         })
         .then(() => {
           $('#loadingDialog').dialog('close');
@@ -242,7 +242,7 @@ async function loadBotVersions(botId, autoLoadBot = true) {
     method: 'GET',
     headers: { Authorization: 'Basic ' + USER_CREDS },
   })
-    .then(docs => {
+    .then(async docs => {
       docs.reverse();
       while (docs.length > 25) {
         const oldVersion = docs.pop();
@@ -257,7 +257,7 @@ async function loadBotVersions(botId, autoLoadBot = true) {
       $('#selBotVersion').html(opts.join());
 
       if (autoLoadBot) {
-        loadBotCode(botId);
+        await loadBotCode(botId, $('#selBotVersion :selected').text());
       }
 
       $('#loadingDialog').dialog('close');
@@ -305,7 +305,7 @@ function deleteBotCodeVersion(botId, version) {
  * @param {*} version
  * @return {void}
  */
-function loadBotCode(botId, version) {
+async function loadBotCode(botId, version) {
   let BOT_CODE_URL = TEAM_URL + '/get/botCode?botId=' + botId;
 
   // if no version supplied, assume we're getting the latest version
@@ -315,11 +315,13 @@ function loadBotCode(botId, version) {
     BOT_CODE_URL += `&version=${version}`;
   }
 
-  if (DBG) console.log('loadBotCode', botId, version, BOT_CODE_URL);
+  if (DBG) {
+    console.log('loadBotCode', botId, version, BOT_CODE_URL);
+  }
   $('#loadingDialog').dialog('open');
   $('#loadMsgBody').text('... loading bot code');
 
-  return $.ajax({
+  await $.ajax({
     url: BOT_CODE_URL,
     dataType: 'json',
     method: 'GET',
