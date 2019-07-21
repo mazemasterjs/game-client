@@ -6,6 +6,7 @@ const MAZE_URL = 'http://mazemasterjs.com/api/maze';
 const GAME_URL = 'http://mazemasterjs.com/game';
 // const GAME_URL = 'http://localhost:8081/game';
 const TEAM_URL = 'http://mazemasterjs.com/api/team';
+// const TEAM_URL = 'http://localhost:8083/api/team';
 const TROPHY_URL = 'http://mazemasterjs.com/api/trophy';
 
 // global configuration vars
@@ -229,9 +230,10 @@ function resetGlobals() {
  * @return {void}
  */
 async function loadBotVersions(botId, autoLoadBot = true) {
+  $('#loadingDialog').dialog('open');
   $('#loadMsgBody').text('... collecting versions for bot ' + botId);
 
-  const BOT_CODE_URL = TEAM_URL + '/get/botCode?botId=' + botId;
+  const BOT_CODE_URL = TEAM_URL + '/get/botCode/true?botId=' + botId;
   if (DBG) console.log('loadBotVersions() -> ', botId, autoLoadBot);
 
   return await $.ajax({
@@ -244,8 +246,8 @@ async function loadBotVersions(botId, autoLoadBot = true) {
       docs.reverse();
       while (docs.length > 25) {
         const oldVersion = docs.pop();
-        console.log('delete this: ', oldVersion);
-        deleteBotCodeVersion(oldVersion.botId, oldVersion.version);
+        $('#loadMsgBody').text('... deleting old versions of bot ' + botId);
+        deleteBotCodeVersion(botId, oldVersion.version);
       }
 
       const opts = [];
@@ -257,6 +259,8 @@ async function loadBotVersions(botId, autoLoadBot = true) {
       if (autoLoadBot) {
         loadBotCode(botId);
       }
+
+      $('#loadingDialog').dialog('close');
     })
     .catch(lbvError => {
       if (lbvError.status === 404) {
@@ -269,13 +273,14 @@ async function loadBotVersions(botId, autoLoadBot = true) {
 }
 
 /**
- * Delete teh specified code version for the given botId
+ * Delete the specified code version for the given botId
  *
  * @param {*} botId
  * @param {*} version
  */
 function deleteBotCodeVersion(botId, version) {
   const DELETE_BOT_CODE_URL = TEAM_URL + `/delete/botCode/${botId}/${version}`;
+  if (DBG) console.log('deleteBotCodeVersion ->', botId, version, DELETE_BOT_CODE_URL);
   $.ajax({
     url: DELETE_BOT_CODE_URL,
     dataType: 'json',
@@ -283,9 +288,11 @@ function deleteBotCodeVersion(botId, version) {
     headers: { Authorization: 'Basic ' + USER_CREDS },
   })
     .then(() => {
+      if (DBG) console.log('deleteBotCodeVersion -> Version Deleted ->', botId, version, DELETE_BOT_CODE_URL);
       logMessage('wrn', `BOT CODE v${version} DELETED`);
     })
     .catch(error => {
+      if (DBG) console.error('deleteBotCodeVersion -> Error Deleting Version ->', botId, version, DELETE_BOT_CODE_URL, error);
       logMessage('err', `ERROR DELETING BOT CODE v${version}`, error.message === undefined ? `${error.status} - ${error.statusText}` : error.message);
     });
 }
@@ -308,7 +315,9 @@ function loadBotCode(botId, version) {
     BOT_CODE_URL += `&version=${version}`;
   }
 
-  console.log('loadBotCode', botId, version, BOT_CODE_URL);
+  if (DBG) console.log('loadBotCode', botId, version, BOT_CODE_URL);
+  $('#loadingDialog').dialog('open');
+  $('#loadMsgBody').text('... loading bot code');
 
   return $.ajax({
     url: BOT_CODE_URL,
@@ -360,7 +369,7 @@ function loadBotCode(botId, version) {
         logMessage('wrn', 'BOT CODE NOT FOUND');
       }
 
-      $('#loadMsgBody').text(`...finally done with all this prep. LET'S CODE!`);
+      $('#loadMsgBody').text(`...bot code loaded!`);
       $('#loadingDialog').dialog('close');
     })
     .catch(codeLoadError => {
@@ -369,6 +378,8 @@ function loadBotCode(botId, version) {
         `ERROR LOADING BOT CODE &rsaquo; ${codeLoadError.status} (${codeLoadError.statusText})`,
         `Cannot load code for bot&nbsp;<b>${botId}.</b>`,
       );
+
+      $('#loadingDialog').dialog('close');
     });
 }
 

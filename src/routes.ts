@@ -30,7 +30,8 @@ let teams: Array<any>;
 let mazes: Array<IMazeStub>;
 
 async function loadRootData() {
-  log.warn(__filename, 'loadRootData()', 'LOADING ROOT DATA');
+  log.debug(__filename, 'loadRootData()', 'LOADING ROOT DATA');
+
   log.debug(__filename, 'scoreboard(req, res)', 'Getting Users');
   users = await fns.doGet(userUrl);
   log.debug(__filename, 'scoreboard(req, res)', `${users.length} user documents retrieved.`);
@@ -42,6 +43,8 @@ async function loadRootData() {
   log.debug(__filename, 'scoreboard(req, res)', 'Getting Mazes');
   mazes = await fns.doGet(mazeUrl);
   log.debug(__filename, 'scoreboard(req, res)', `${mazes.length} maze stub documents retrieved.`);
+
+  log.debug(__filename, 'loadRootData()', 'ROOT DATA LOAD COMPLETE');
 }
 
 export const scoreboard = async (req: Request, res: Response) => {
@@ -55,6 +58,7 @@ export const scoreboard = async (req: Request, res: Response) => {
   const teamGames = req.query.teamGames;
 
   let teamQuery = '';
+  let scoreTeams = new Array<any>();
   if (filter === 'campers') {
     const camperTeams: Array<any> = new Array<any>();
     teams.forEach(t => {
@@ -63,7 +67,9 @@ export const scoreboard = async (req: Request, res: Response) => {
         teamQuery = teamQuery + '&teamIds[]=' + t.id;
       }
     });
-    teams = camperTeams;
+    scoreTeams = camperTeams;
+  } else {
+    scoreTeams = teams;
   }
 
   const topScores: any = [];
@@ -71,15 +77,32 @@ export const scoreboard = async (req: Request, res: Response) => {
     if (maze.challenge > 0 && maze.name.indexOf('DEBUG') === -1) {
       await fns.doGet(scoreUrl + '/topScores?mazeId=' + maze.id + teamQuery + (teamGames ? '&teamGames=true' : '')).then(scores => {
         scores.forEach((score: IScore) => {
-          const team = teams.find(t => {
+          log.debug(__filename, 'topScores()', 'Searching for team from score');
+          const team = scoreTeams.find(t => {
             return t.id === score.teamId;
           });
 
-          const bot = team.bots.find((b: any) => {
-            return b.id === score.botId;
-          });
+          if (team !== undefined && team.bots !== undefined && score.botId !== '') {
+            log.debug(__filename, 'topScores()', 'Searching for bot on team');
+            const bot = team.bots.find((b: any) => {
+              return b.id === score.botId;
+            });
 
-          topScores.push({ mazeName: maze.name, mazeLevel: maze.challenge, score, teamName: team.name, bot });
+            if (bot !== undefined) {
+              log.debug(__filename, 'topScores()', 'Score data loaded successfully.');
+              topScores.push({ mazeName: maze.name, mazeLevel: maze.challenge, score, teamName: team.name, bot });
+            } else {
+              log.warn(__filename, 'topScores()', 'Bot not found: ' + score.botId);
+            }
+          } else {
+            if (team === undefined) {
+              log.warn(__filename, 'topScores()', 'Team not found: ' + score.teamId);
+            } else if (team.bots === undefined) {
+              log.warn(__filename, 'topScores()', 'Team.bots is undefined for team: ' + score.teamId);
+            } else if (score.botId === '') {
+              log.warn(__filename, 'topScores()', 'Bot not found: TeamId: ' + score.teamId + ', BotId: ' + score.botId);
+            }
+          }
         });
       });
     }
