@@ -12,6 +12,11 @@ The MazeMasterJS Game Client
 
 ## Change Notes
 
+### v1.1.3
+
+- Fix for Team and User Editor - editors will now force-reload cached user and team data on every action
+- Note: These are still incomplete and glitchy - use with caution until the bugs are worked out (which may reuqire some restructuring of data)
+
 ### v1.1.2
 
 - BOT EDITOR

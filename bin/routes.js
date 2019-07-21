@@ -159,9 +159,8 @@ exports.quickHash = (req, res) => __awaiter(this, void 0, void 0, function* () {
 exports.editTeams = (req, res) => __awaiter(this, void 0, void 0, function* () {
     logRequest('editTeams', req, true);
     const teamId = req.query.teamId;
-    if (!mazes || !teams || !users) {
-        yield loadRootData();
-    }
+    // reload root data when edit teams or users
+    yield loadRootData();
     let team = teams[0];
     log.debug(__filename, 'editTeams()', `${teams.length} teams returned.`);
     if (teamId !== undefined) {
@@ -185,8 +184,10 @@ exports.editTeams = (req, res) => __awaiter(this, void 0, void 0, function* () {
     return res.render('team-editor.ejs', { users, teams, team });
 });
 exports.editUsers = (req, res) => __awaiter(this, void 0, void 0, function* () {
-    logRequest('editusers', req, true);
+    logRequest('editUsers', req, true);
     const userId = req.query.userId;
+    // reload root data when edit teams or users
+    yield loadRootData();
     let userIdx = 0;
     if (userId !== undefined) {
         if (userId === 'NEW_USER') {
