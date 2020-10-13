@@ -4,7 +4,7 @@ const log = Logger.getInstance();
 
 export class Config {
   /**
-   * Instantiate and/or returns class instance
+   * Instantiate and/or returns class instance ... 
    */
   public static getInstance(): Config {
     if (this.instance === undefined) {
